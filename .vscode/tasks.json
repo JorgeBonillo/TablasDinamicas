@@ -1,0 +1,22 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "build",
+            "command": "gcc",
+            "args": [
+                "-g",
+                "-o",
+                "test",
+                "main.c",
+                "tools.c",
+                "list.c"
+            ],
+            
+            "group": "build"
+        }
+    ]
+}
