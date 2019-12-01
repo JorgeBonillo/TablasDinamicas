@@ -25,10 +25,10 @@ int comandoPrompt(char *prompt)
       return INFO;
 
     if(strcmp(prompt, "filtro")==0)
-        return FILTRO;
+        return FILTROPROM;
 
     if(strcmp(prompt, "filtros")==0)
-        return FILTROS;
+        return FILTROSPROM;
 
     if(strcmp(prompt, "borrar")==0)
         return BORRAR;
@@ -60,12 +60,13 @@ int comprobarMenorMayor(char *cadena)
   return resultado;
 }
 
+//Funcion para comprobar que el fichero existe
 int cargarFichero(char *nombreFichero)
 {
   FILE *fp;
   int ok = 0;
   //strcpy(nombreFichero, eliminarMenorMayor(nombreFichero));
-  printf("%s\n", nombreFichero);
+  //printf("%s\n", nombreFichero);
   fp = fopen (nombreFichero, "r" );
   if (fp==NULL)
   {
@@ -73,12 +74,13 @@ int cargarFichero(char *nombreFichero)
   }
   else
   {
-    printf("El fichero existe\n");
+    //printf("El fichero existe\n");
     ok = 1;
   }
   return ok;
 }
 
+//Funcion para obetener cadenas
 void obtenerCadena(char *cadena, char *sep, int n, char *cad)
 {
   int l = strlen(sep);
@@ -107,7 +109,77 @@ void obtenerCadena(char *cadena, char *sep, int n, char *cad)
   //return *cad;
 }
 
+//Funcion para vaciar un char
+void vaciarChar(char *cadenaLimpiar)
+{
+  int j=0;
+  int longitud = strlen(cadenaLimpiar);
+  for ( j = 0; j <= longitud; j++)
+  {
+    cadenaLimpiar[j]= '\0';
+  }
+}
 
+char *validarSep(char *sep)
+{
+  if (strcmp(sep, "[tab]")==0)
+  {
+    vaciarChar(sep);
+    strcpy (sep, "\t");
+    return sep;
+  }
+  else if (strcmp(sep, "[esp]")==0)
+  {
+    vaciarChar(sep);
+    strcpy (sep, " ");
+    return sep;
+  }
+
+  return sep;
+}
+
+//Funcion para comprobar cuantas columnas tiene el fichero
+int numColumnas(char *nomfc, char *sep)
+{
+  FILE *f;
+  char temp[1000];
+  f = fopen(nomfc, "r");
+  if (f == NULL)
+  {
+    printf("Error en la apertura del archivo\n");
+  }
+  else
+  {
+    fgets(temp,1000,f);
+    return obtenerColumnas(sep, temp);
+  }
+  close(f);
+}
+
+//Funcion para comprobar cuantas filas tiene el fichero
+int numFilas(char *nomfc, char *sep)
+{
+  FILE *f;
+  int fila = 0;
+  char temp[1000];
+  f = fopen(nomfc, "r");
+  if (f == NULL)
+  {
+    printf("Error en la apertura del archivo\n");
+  }
+  else
+  {
+    fgets(temp,1000,f);
+    while (!feof(f))
+    {
+      fgets(temp,1000,f);
+      fila++;
+    }
+    printf("Filas: %d\n", fila);
+    return fila;
+  }
+  close(f);
+}
 
 int validarBD(char *nomfc, char *sep, METADATOS *meta)
 {
@@ -115,7 +187,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
   FILE *f;
   int fila=0;
   int colum=0;
-  char temp[1000]; //¿cuanto tamaños le asignamos? tenemos 200 caracteres
+  char temp[1000];
   char temp2[1000];
   char *cadena[30];
   char cad[50];
@@ -130,21 +202,9 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
   }
   else
   {
-    fgets(temp,1000,f);
-    colum = obtenerColumnas(sep, temp);
-   
-    printf("%d\n",colum);
-
-    while (!feof(f))
-    {
-      fgets(temp,200,f);
-      fila++;
-    }
-    printf("Filas: %d\n", fila);
-
-    meta = crearMetadatos(colum, fila);
-
-    rewind(f);
+    
+    colum = meta->nCols;
+    fila = meta->nFils;
     fgets(temp,1000,f);
 
     pCol = meta -> p;
@@ -158,7 +218,6 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
         obtenerCadena(temp, sep, i, cad);
 
         pCol->nom = strdup(cad);
-        //pCol->lista = (ETIQUETA*)malloc(sizeof(ETIQUETA));
         pCol->lista = NULL;
 
         if (i == colum-1)
@@ -210,8 +269,6 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
             
             pEtiq -> etiqueta = strdup(cad);
             pEtiq -> cuenta = 1;
-            //pEtiq -> siguiente = (ETIQUETA*)malloc(sizeof(ETIQUETA));
-            //pEtiq = pEtiq -> siguiente;
           } 
           else
           {
@@ -235,50 +292,40 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
           }
         }
       }
-      //pCol = pCol -> next;
+      else
+      {
+        printf("error en la fila");
+      }
+      
+      
     }
     
-    //int S = obtenerColumnas(sep, temp);
-
-    /*for (int i = 0; i < colum; i++)
-    {
-      char cad[50];
-      obtenerCadena(temp2, sep, i, cad);
-      printf("cadena: %s", cad);
-      for (int j = 0; j <= 50; j++)
-      {
-        cad[j]= '\0';
-      }
-    }*/
-    
-    /*fgets(temp,1000,f);
-    //fgets(temp2,1000,f);
-    pCol = meta -> p;
-     for (int i = 0; i<= colum; i++)
-     {
-        if (i==0)
-        {
-          pCol->nom = strdup( strtok(temp, sep) );
-          //pCol->t = ObtenerTipo( strtok(temp2, sep) );
-          pCol -> next = (COLUMNA*)malloc(sizeof(COLUMNA));
-          pCol = pCol->next;
-        }
-        else
-        {
-          cadena[i] = strtok(NULL, sep);
-          pCol->nom = strdup(cadena[i]);
-          pCol -> next = (COLUMNA*)malloc(sizeof(COLUMNA));
-          pCol = pCol->next;
-        }
-        
-          
-     }*/
-
-
-
   }
 
   return 0;
+}
+
+int renombrarColum (char *columVieja, char *columNueva, METADATOS *meta)
+{
+  COLUMNA* pCol;
+
+  pCol = buscarCol(meta, columVieja);
+
+  if(pCol == NULL)
+  {
+    printf("No existe la columna a modificar");
+  }
+  else
+  {
+    if (buscarCol(meta, columNueva) == NULL)
+    {
+      pCol ->nom = columNueva;
+    }
+    else
+    {
+      printf("La columna nueva ya existe");
+    }
+  }
 }
 
 char *eliminarMenorMayor(char *cadena)
@@ -308,6 +355,127 @@ int obtenerColumnas(char *sep, char *cadena)
 
   return f;
   
+}
+
+int infoColum(char *nomfc, METADATOS *meta, char *nomColum)
+{
+  COLUMNA *pCol = buscarCol(meta, nomColum);
+
+  if(pCol != NULL)
+  {
+    
+  }
+  else
+  {
+    printf("No existe la columna a buscar\n");
+  }
+  
+
+}
+
+OPERANDO comprobarOperando (char *operan)
+{
+  if (strcmp(operan, "==") == 0)
+  {
+    
+    return NULL;
+  }
+  /*else if (strcmp(operan, "!=") == 0)
+  {
+    return DISTINTO;
+  }
+  else if (strcmp(operan, ">") == 0)
+  {
+    return MENOR;
+  }
+  else if (strcmp(operan, ">=") == 0)
+  {
+    return MENORIGUAL;
+  }
+  else if (strcmp(operan, "<") == 0)
+  {
+    return MAYOR;
+  }
+  else if (strcmp(operan, "<=") == 0)
+  {
+    return MAYORIGUAL;
+  }*/
+  /*else
+  {
+    return NULL;
+  }*/
+
+}
+
+int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *operadorFiltro, char *valorFiltro)
+{
+  FILTRO *pFiltro = metaFiltros -> p;
+  COLUMNA *pColFiltro = buscarCol(meta, columna);
+  //char comprobacionOperando = comprobarOperando(operadorFiltro);
+
+  /*if (comprobarOperando(operadorFiltro) == NULL)
+  {
+    printf("El operando no es valido\n");
+    return 0;
+  }
+  else
+  {
+    printf("Operando valido");
+  }*/
+  
+  if (pColFiltro == NULL)
+  {
+    printf("No existe la columna del filtro\n");
+  }
+  else
+  {
+    if (pFiltro == NULL)
+    {
+      metaFiltros -> num = (metaFiltros -> num + 1);
+      pFiltro = metaFiltros -> p = (FILTRO*)malloc(sizeof(FILTRO));
+      pFiltro -> next = NULL;
+    }
+    else
+    {
+      while (pFiltro -> next)
+      {
+        pFiltro = pFiltro -> next;
+      }
+      metaFiltros -> num = (metaFiltros -> num + 1);
+      pFiltro = pFiltro -> next = (FILTRO*)malloc(sizeof(FILTRO));
+      pFiltro -> next = NULL;
+    }
+
+    pFiltro -> pCol = pColFiltro;
+    pFiltro -> operador = IGUAL;
+    pFiltro -> valor = strdup(valorFiltro);
+    
+    
+  }
+  
+
+  return 0;
+}
+
+void imprimirFiltros(FILTROS *metaFiltros)
+{
+  FILTRO *pFiltro = metaFiltros -> p;
+  int contador = 1;
+
+  if(pFiltro == NULL)
+  {
+    printf("No hay filtros que mostrar\n");
+  }
+  else
+  {
+    while (pFiltro)
+      {
+        printf("Filtro %d:\n", contador);
+        printf("columna: %s - operador: %c - valor: %s\n", pFiltro ->pCol ->nom, pFiltro->operador, pFiltro->valor);
+        pFiltro = pFiltro -> next;
+        contador++;
+      }
+  }
 }
 
 

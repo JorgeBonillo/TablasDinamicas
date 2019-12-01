@@ -9,17 +9,19 @@ int main(int argc, char const *argv[]) {
 
   char comando[100];
 
-  char *token[50];
+  char *token[200];
 
   char nomdb[100]="*";
   char nomfc[100];
-  char sep[5];
+  char sep[50];
   char vali[5]="";
 
-  struct METADATOS *meta;
-  struct COLUMNAS *columnas;
+  METADATOS *meta;
+  //struct COLUMNAS *columnas;
   meta = NULL;
-  columnas = NULL;
+  FILTROS *metaFiltros;
+  metaFiltros = NULL;
+  //columnas = NULL;
 
   datosPersonales();
 
@@ -77,13 +79,12 @@ int main(int argc, char const *argv[]) {
             printf("cumple condicion <>\n");
             strcpy(nomfc, eliminarMenorMayor(token[1]));
             strcpy(sep, eliminarMenorMayor(token[2]));
+            validarSep(sep);
             if (cargarFichero(nomfc) == 1)
             {
               strcpy(nomdb, nomfc);
               strcpy(vali, "-?");
-            }
-            //nomdb = eliminarMenorMayor(token[1]);
-            //strcpy(nomdb, eliminarMenorMayor(token[1]));
+            }    
           }
           else
           {
@@ -97,34 +98,165 @@ int main(int argc, char const *argv[]) {
         printf("caso validar\n");
         printf("------------\n");
 
-        if (token[1] == NULL)
+        if (strcmp(nomdb, "*")==0)
         {
-          validarBD(nomfc, sep, meta);
+          printf("No se ha introducido ninguna base de datos\n");
         }
+        else
+        {
+          if (token[1] == NULL)
+          {
+            meta = crearMetadatos(numColumnas(nomfc, sep), numFilas(nomfc, sep));
+            metaFiltros = crearFiltrosMeta();
+            validarBD(nomfc, sep, meta);
+          }
+          else
+          {
+            printf("INTRODUCE UN COMANDO VALIDO\n");
+          }
+          
+        }
+        
       break;
 
       case RENOMBRAR:
-        printf("renombrar\n");
+        printf("caso RENOMBRAR\n");
+        printf("------------\n");
+
+        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
+        //if (strcmp(vali, "")==0)
+        //{
+          if ((token[1] == NULL) || (token[2] == NULL))
+          {
+            printf("INTRODUCE UN COMANDO VALIDO\n");
+          }
+          else
+          {
+            if ((comprobarMenorMayor(token[1]) == 1) && (comprobarMenorMayor(token[2]) == 1))
+            {
+              renombrarColum(eliminarMenorMayor(token[1]), eliminarMenorMayor(token[2]), meta);
+            }
+          }
+        //}
       break;
 
       case INFO:
-        printf("info\n");
+        printf("caso INFO\n");
+        printf("------------\n");
+
+        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
+        //if (strcmp(vali, "")==0)
+        //{
+
+          if (token[1] == NULL)
+          {
+            printf("INTRODUCE UN COMANDO VALIDO\n");
+          }
+          else
+          {
+            if (comprobarMenorMayor(token[1]) == 1)
+            {
+
+            }
+          }
+          
+
+        //}
       break;
 
-      case FILTRO:
-        printf("filtro\n");
+      case FILTROPROM:
+        printf("caso FILTRO\n");
+        printf("------------\n");
+
+        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
+        //if (strcmp(vali, "")==0)
+        //{
+          if ((token[1] == NULL) || (token[2] == NULL) || (token[3] == NULL))
+          {
+            printf("INTRODUCE UN COMANDO VALIDO\n");
+          }
+          else
+          {
+            if ((comprobarMenorMayor(token[1]) == 1) && (comprobarMenorMayor(token[2]) == 1) && (comprobarMenorMayor(token[3]) == 1))
+            {
+              anadirFiltro(metaFiltros, meta, eliminarMenorMayor(token[1]), eliminarMenorMayor(token[2]), eliminarMenorMayor(token[3]));
+            }
+            else
+            {
+              printf("Error\n");
+            }
+            
+            
+          }
+          
+        //}
       break;
 
-      case FILTROS:
-        printf("filtroS\n");
+      case FILTROSPROM:
+        printf("caso FILTROs\n");
+        printf("------------\n");
+
+        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
+        //if (strcmp(vali, "")==0)
+        //{
+          if (token[1] == NULL)
+          {
+            imprimirFiltros(metaFiltros);
+          }
+          else
+          {
+            printf("INTRODUCE UN COMANDO VALIDO\n");
+          }
+          
+
+        //}
       break;
 
       case BORRAR:
-        printf("borrar\n");
+        printf("caso BORRAR\n");
+        printf("------------\n");
+
+        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
+        //if (strcmp(vali, "")==0)
+        //{
+          if ((token[1] == NULL))
+          {
+            printf("INTRODUCE UN COMANDO VALIDO\n");
+          }
+          else
+          {
+            if (comprobarMenorMayor(token[1]) == 1)
+            {
+              eliminarFiltro(metaFiltros, eliminarMenorMayor(token[1]));
+            }
+            else
+            {
+              printf("Error\n");
+            }
+            
+          }
+          
+
+        //}
       break;
 
       case APLICAR:
-        printf("aplicar\n");
+        printf("caso APLICAR\n");
+        printf("------------\n");
+
+        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
+        //if (strcmp(vali, "")==0)
+        //{
+          if ((token[1] == NULL))
+          {
+            printf("INTRODUCE UN COMANDO VALIDO\n");
+          }
+          else
+          {
+            
+          }
+
+        //}
       break;
 
       default:
