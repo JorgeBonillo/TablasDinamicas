@@ -36,6 +36,9 @@ int comandoPrompt(char *prompt)
     if(strcmp(prompt, "aplicar")==0)
         return APLICAR;
 
+    if(strcmp(prompt, "guardar")==0)
+        return GUARDAR;
+
     return 0;
 }
 

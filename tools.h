@@ -10,6 +10,7 @@
 #define FILTROSPROM 7
 #define BORRAR 8
 #define APLICAR 9
+#define GUARDAR 10
 
 //ESTRUCTURAS PARA FICHERO
 

@@ -61,7 +61,8 @@ int main(int argc, char const *argv[]) {
       case SALIR:
         printf("caso salir\n");
         printf("----------\n");
-        return 0;
+        liberarMemoria(metaFiltros, meta);
+        //return 0;
       break;
 
       case DATOS:
@@ -257,6 +258,27 @@ int main(int argc, char const *argv[]) {
           }
 
         //}
+      break;
+
+      case GUARDAR:
+        printf("caso GUARDAR\n");
+        printf("------------\n");
+
+        if (token[1] == NULL || token[2] == NULL)
+        {
+          printf("INTRODUCE UN COMANDO VALIDO\n");
+        }
+        else
+        {
+          if ((comprobarMenorMayor(token[1]) == 0) && comprobarMenorMayor(token[2]) == 1)
+          {
+            if (strcmp(token[1], "meta") == 0)
+            {
+              printf("COMANDO OK \n");
+            }
+          }
+        }
+        
       break;
 
       default:

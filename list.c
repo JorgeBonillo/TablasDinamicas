@@ -82,41 +82,107 @@ FILTROS *crearFiltrosMeta ()
 
 int eliminarFiltro (FILTROS *metaFiltros, char *elemento)
 {
-    int posicion = 0;
+    /*int posicion = 0;
     int numBorrar = atoi(elemento);
-    //FILTRO *pFiltr = metaFiltros -> p;
 
-    /*if (metaFiltros -> num < borrar)
-    {
-        printf("Numero ha borrar es mayor que los elementos\n");
-        return 0;
-    }
-    if (metaFiltros -> p == NULL)
-    {
-        printf("No hay elemento que borrar\n");
-        return 0;
-    }
-
-    while (posicion < borrar)
-    {
-        pFiltr = pFiltr -> next;
-        posicion++;
-    }
-
-    pFiltr = pFiltr -> next;*/
 
     FILTRO *pFiltr = buscarFiltroNum(numBorrar, metaFiltros);
 
+    FILTRO *pFiltrAnterior = NULL;
+
+    FILTRO *temp = NULL;
+
     if (pFiltr == NULL)
-   {
+    {
        printf("El numero no existe\n");
        return 0;
-   } 
-   else
-   {
-       printf("Numero encontrado\n");
-   }
-   
-    
+    } 
+    else
+    {
+        temp = metaFiltros;
 
+        if (numBorrar == 1)
+        {
+            metaFiltros =metaFiltros->p;
+            free (temp);
+        }
+        else
+        {
+            for (int i = 1; i < numBorrar; i++)
+            {
+                temp = temp -> next;
+            }
+            free (temp -> next);
+            
+        }
+        
+       
+    }*/
+
+    int numBorrar = atoi(elemento);
+    FILTRO *pFiltr = metaFiltros -> p;
+    FILTRO *temp = NULL;
+
+    if (numBorrar > metaFiltros ->num)
+    {
+        printf("El numero no existe\n");
+        return 0;
+    }  
+    else
+    {
+        temp = metaFiltros -> p;
+
+        //Caso primer elemento
+        if (numBorrar == 1)
+        {
+            metaFiltros -> p = temp ->next;
+            metaFiltros -> num = (metaFiltros -> num - 1);
+            free (temp);
+
+        }
+        //Caso ultimo elemento
+        else if (numBorrar == (metaFiltros -> num))
+        {
+            while ((temp -> next)->next != NULL)
+            {
+                temp = temp -> next;
+            }
+            free(temp->next);
+            temp -> next = NULL;
+            metaFiltros -> num = (metaFiltros -> num - 1);
+        }
+        //Caso otro elemento
+        else
+        {
+            for (int i = 1; i <= numBorrar; i++)
+            {
+                temp = temp -> next;
+            }
+            
+        }
+        
+    }   
 }
+
+void liberarMemoria(FILTROS *metaFiltros, METADATOS *metaColumnas)
+{
+    COLUMNA *pCol = metaColumnas -> p;
+    COLUMNA *pColAux = NULL;
+    FILTRO *pFiltro = metaFiltros -> p;
+    FILTRO *pFiltroAux = NULL;
+
+    while (pCol != NULL)
+    {
+        pColAux = pCol;
+        pCol = pCol -> next;
+        free (pColAux);
+    }
+    
+    while (pFiltro)
+    {
+        pFiltroAux = pFiltro;
+        pFiltro = pFiltro -> next;
+        free (pFiltroAux);
+    }
+}
+   

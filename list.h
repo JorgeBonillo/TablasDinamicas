@@ -11,3 +11,5 @@ FILTROS *crearFiltrosMeta ();
 void imprimirFiltros(FILTROS *metaFiltros);
 
 int eliminarFiltro (FILTROS *metaFiltros, char *elemento);
+
+void liberarMemoria(FILTROS *metaFiltros, METADATOS *metaColumnas);
