@@ -61,7 +61,8 @@ int main(int argc, char const *argv[]) {
       case SALIR:
         printf("caso salir\n");
         printf("----------\n");
-        liberarMemoria(metaFiltros, meta);
+        liberarMemoriaFiltros(metaFiltros);
+        liberarMemoriaMeta(meta);
         //return 0;
       break;
 
@@ -75,21 +76,17 @@ int main(int argc, char const *argv[]) {
         }
         else
         {
-          if ((comprobarMenorMayor(token[1]) == 1) && (comprobarMenorMayor(token[2]) == 1))
+          strcpy(nomfc, token[1]);
+          strcpy(sep, token[2]);
+          validarSep(sep);
+          if (cargarFichero(nomfc) == 1)
           {
-            printf("cumple condicion <>\n");
-            strcpy(nomfc, eliminarMenorMayor(token[1]));
-            strcpy(sep, eliminarMenorMayor(token[2]));
-            validarSep(sep);
-            if (cargarFichero(nomfc) == 1)
-            {
-              strcpy(nomdb, nomfc);
-              strcpy(vali, "-?");
-            }    
-          }
+            strcpy(nomdb, nomfc);
+            strcpy(vali, "-?");
+          }    
           else
           {
-            printf("INTRODUCE UN COMANDO VALIDO\n");
+            printf("El fichero no existe\n");
           }
         }
 
@@ -220,7 +217,7 @@ int main(int argc, char const *argv[]) {
         //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
         //if (strcmp(vali, "")==0)
         //{
-          if ((token[1] == NULL))
+          if (token[1] == NULL)
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
@@ -248,7 +245,7 @@ int main(int argc, char const *argv[]) {
         //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
         //if (strcmp(vali, "")==0)
         //{
-          if ((token[1] == NULL))
+          if (token[1] == NULL)
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }

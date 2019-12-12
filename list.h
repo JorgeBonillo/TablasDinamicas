@@ -12,4 +12,10 @@ void imprimirFiltros(FILTROS *metaFiltros);
 
 int eliminarFiltro (FILTROS *metaFiltros, char *elemento);
 
-void liberarMemoria(FILTROS *metaFiltros, METADATOS *metaColumnas);
+int liberarMemoriaFiltros(FILTROS *metaFiltros);
+
+int liberarMemoriaMeta (METADATOS *metaColumnas);
+
+OPERANDO comprobarOperando (char *operan);
+
+TIPO comprobarTipo (char *cadena);

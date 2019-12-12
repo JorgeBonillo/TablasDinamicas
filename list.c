@@ -82,46 +82,15 @@ FILTROS *crearFiltrosMeta ()
 
 int eliminarFiltro (FILTROS *metaFiltros, char *elemento)
 {
-    /*int posicion = 0;
     int numBorrar = atoi(elemento);
-
-
-    FILTRO *pFiltr = buscarFiltroNum(numBorrar, metaFiltros);
-
-    FILTRO *pFiltrAnterior = NULL;
-
-    FILTRO *temp = NULL;
-
-    if (pFiltr == NULL)
-    {
-       printf("El numero no existe\n");
-       return 0;
-    } 
-    else
-    {
-        temp = metaFiltros;
-
-        if (numBorrar == 1)
-        {
-            metaFiltros =metaFiltros->p;
-            free (temp);
-        }
-        else
-        {
-            for (int i = 1; i < numBorrar; i++)
-            {
-                temp = temp -> next;
-            }
-            free (temp -> next);
-            
-        }
-        
-       
-    }*/
-
-    int numBorrar = atoi(elemento);
+    int contador = 1;
     FILTRO *pFiltr = metaFiltros -> p;
     FILTRO *temp = NULL;
+    if (metaFiltros == NULL)
+    {
+        printf("No hay filtros\n");
+        return 0;
+    }
 
     if (numBorrar > metaFiltros ->num)
     {
@@ -154,35 +123,136 @@ int eliminarFiltro (FILTROS *metaFiltros, char *elemento)
         //Caso otro elemento
         else
         {
-            for (int i = 1; i <= numBorrar; i++)
+            while (contador != numBorrar-1)
             {
                 temp = temp -> next;
+                contador++;
             }
+            free(temp -> next);
+            temp -> next = (temp->next)->next;
+            metaFiltros -> num = (metaFiltros -> num - 1);
             
         }
         
     }   
+    return 0;
 }
 
-void liberarMemoria(FILTROS *metaFiltros, METADATOS *metaColumnas)
+int liberarMemoriaMeta (METADATOS *metaColumnas)
 {
+    
+    if (metaColumnas == NULL)
+    {
+        return 0;
+    }
+
     COLUMNA *pCol = metaColumnas -> p;
     COLUMNA *pColAux = NULL;
-    FILTRO *pFiltro = metaFiltros -> p;
-    FILTRO *pFiltroAux = NULL;
+    ETIQUETA *pEtiq, *pEtiqAux;
+    
 
-    while (pCol != NULL)
+    while (pCol)
     {
         pColAux = pCol;
         pCol = pCol -> next;
+        free(pColAux->nom);
+        if (pColAux->t == STR)
+        {
+            pEtiq = pColAux->lista;
+            while (pEtiq)
+            {
+                pEtiqAux = pEtiq;
+                pEtiq = pEtiq ->siguiente;
+                free(pEtiqAux->etiqueta);
+                free (pEtiqAux);
+            }
+            
+        }
+
         free (pColAux);
     }
+
     
+    
+    free(metaColumnas);
+    return 0;
+}
+
+int liberarMemoriaFiltros(FILTROS *metaFiltros)
+{
+
+    if (metaFiltros == NULL)
+    {
+        return 0;
+    }
+
+    FILTRO *pFiltro = metaFiltros -> p;
+    FILTRO *pFiltroAux = NULL;
+
     while (pFiltro)
     {
         pFiltroAux = pFiltro;
         pFiltro = pFiltro -> next;
         free (pFiltroAux);
     }
+
+    free (metaFiltros);
+    return 1;
+}
+
+OPERANDO comprobarOperando (char *operan)
+{
+  if (strcmp(operan, "==") == 0)
+  {
+    return IGUAL;
+  }
+  else if (strcmp(operan, "!=") == 0)
+  {
+    return DISTINTO;
+  }
+  else if (strcmp(operan, ">") == 0)
+  {
+    return MENOR;
+  }
+  else if (strcmp(operan, ">=") == 0)
+  {
+    return MENORIGUAL;
+  }
+  else if (strcmp(operan, "<") == 0)
+  {
+    return MAYOR;
+  }
+  else if (strcmp(operan, "<=") == 0)
+  {
+    return MAYORIGUAL;
+  }
+  else
+  {
+    return nulo;
+  }
+
+}
+
+TIPO comprobarTipo (char *cadena)
+{
+    if (esFecha(cadena) == 1)
+    {
+        return DATE;
+    }
+    else if (esNumero(cadena) == 1)
+    {
+        return NUM;
+    }
+    else if (esCadena(cadena) == 1)
+    {
+        return STR;
+    }
+    else
+    {
+        return VOID;
+    }
+    
+    
+    
 }
    

@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <stdbool.h>
 
 
 //Funcion para el prompt
@@ -68,12 +70,10 @@ int cargarFichero(char *nombreFichero)
 {
   FILE *fp;
   int ok = 0;
-  //strcpy(nombreFichero, eliminarMenorMayor(nombreFichero));
-  //printf("%s\n", nombreFichero);
   fp = fopen (nombreFichero, "r" );
   if (fp==NULL)
   {
-    printf("El fichero no existe\n");
+    ok = 0;
   }
   else
   {
@@ -129,13 +129,11 @@ char *validarSep(char *sep)
   {
     vaciarChar(sep);
     strcpy (sep, "\t");
-    return sep;
   }
   else if (strcmp(sep, "[esp]")==0)
   {
     vaciarChar(sep);
-    strcpy (sep, " ");
-    return sep;
+    strcpy (sep, " ");   
   }
 
   return sep;
@@ -150,13 +148,16 @@ int numColumnas(char *nomfc, char *sep)
   if (f == NULL)
   {
     printf("Error en la apertura del archivo\n");
+    fclose(f);
+    return 0;
   }
   else
   {
     fgets(temp,1000,f);
+    fclose(f);
     return obtenerColumnas(sep, temp);
   }
-  close(f);
+  
 }
 
 //Funcion para comprobar cuantas filas tiene el fichero
@@ -169,6 +170,8 @@ int numFilas(char *nomfc, char *sep)
   if (f == NULL)
   {
     printf("Error en la apertura del archivo\n");
+    fclose(f);
+    return 0;
   }
   else
   {
@@ -179,9 +182,9 @@ int numFilas(char *nomfc, char *sep)
       fila++;
     }
     printf("Filas: %d\n", fila);
+    fclose(f);
     return fila;
   }
-  close(f);
 }
 
 int validarBD(char *nomfc, char *sep, METADATOS *meta)
@@ -233,15 +236,13 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
           pCol = pCol->next;
         }
 
-        for (int j = 0; j <= 50; j++)
-        {
-          cad[j]= '\0';
-        }
+        vaciarChar(cad);
       }
 
     pCol = meta -> p;
     pEtiq = pCol -> lista;
     pColAux = *pCol;
+    
     while (!feof(f))
     {
       fgets(temp2,1000,f);
@@ -251,6 +252,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
         for (int i = 0; i < colum; i++)
         {
           obtenerCadena(temp2, sep, i, cad);
+          comprobarTipo(cad);
 
           if(buscarEtiq(cad, pCol) == NULL)
           { 
@@ -317,6 +319,7 @@ int renombrarColum (char *columVieja, char *columNueva, METADATOS *meta)
   if(pCol == NULL)
   {
     printf("No existe la columna a modificar");
+    return 0;
   }
   else
   {
@@ -327,8 +330,10 @@ int renombrarColum (char *columVieja, char *columNueva, METADATOS *meta)
     else
     {
       printf("La columna nueva ya existe");
+      return 0;
     }
   }
+  return 1;
 }
 
 char *eliminarMenorMayor(char *cadena)
@@ -373,42 +378,10 @@ int infoColum(char *nomfc, METADATOS *meta, char *nomColum)
     printf("No existe la columna a buscar\n");
   }
   
-
+return 0;
 }
 
-OPERANDO comprobarOperando (char *operan)
-{
-  if (strcmp(operan, "==") == 0)
-  {
-    
-    return NULL;
-  }
-  /*else if (strcmp(operan, "!=") == 0)
-  {
-    return DISTINTO;
-  }
-  else if (strcmp(operan, ">") == 0)
-  {
-    return MENOR;
-  }
-  else if (strcmp(operan, ">=") == 0)
-  {
-    return MENORIGUAL;
-  }
-  else if (strcmp(operan, "<") == 0)
-  {
-    return MAYOR;
-  }
-  else if (strcmp(operan, "<=") == 0)
-  {
-    return MAYORIGUAL;
-  }*/
-  /*else
-  {
-    return NULL;
-  }*/
 
-}
 
 int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *operadorFiltro, char *valorFiltro)
 {
@@ -416,7 +389,7 @@ int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *op
   COLUMNA *pColFiltro = buscarCol(meta, columna);
   //char comprobacionOperando = comprobarOperando(operadorFiltro);
 
-  /*if (comprobarOperando(operadorFiltro) == NULL)
+  if (comprobarOperando(operadorFiltro) == nulo)
   {
     printf("El operando no es valido\n");
     return 0;
@@ -424,7 +397,7 @@ int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *op
   else
   {
     printf("Operando valido");
-  }*/
+  }
   
   if (pColFiltro == NULL)
   {
@@ -450,9 +423,8 @@ int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *op
     }
 
     pFiltro -> pCol = pColFiltro;
-    pFiltro -> operador = IGUAL;
+    pFiltro -> operador = comprobarOperando(operadorFiltro);
     pFiltro -> valor = strdup(valorFiltro);
-    
     
   }
   
@@ -481,7 +453,140 @@ void imprimirFiltros(FILTROS *metaFiltros)
   }
 }
 
+int esNumero(char *cadena)
+{
+  for(int i = 0; i < strlen(cadena); i++)
+  {
+    int codigoAscii = toascii(cadena[i]);
+    if(codigoAscii <= 57 && codigoAscii >= 48)
+    {
+      
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  return 1;
+}
 
+int esCadena (char *cadena)
+{
+  for(int i = 0; i < strlen(cadena); i++)
+  {
+    int codigoAscii = toascii(cadena[i]);
+    if (codigoAscii <= 90 && codigoAscii >= 65)
+    {
+
+    }
+    else if (codigoAscii <= 122 && codigoAscii >= 97)
+    {
+
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+int esFecha (char *cadena)
+{
+  int i;
+  
+  if (strlen(cadena) == 10)
+  {
+    
+    //Comprobamos ANYO YYYY
+    for (i = 0; i < 4; i++)
+    {
+      int codigoAscii = toascii(cadena[i]);
+
+      if(codigoAscii <= 57 && codigoAscii >= 48)
+      {
+
+      }
+      else
+      {
+        return 0;
+      }
+    }
+    
+    
+    //Comprobamos primer /
+    if (cadena[4] == '/')
+    {
+      
+    }
+    else
+    {
+      return 0;
+    }
+    
+    
+    //Comprobamos MESES MM
+    for (i = 5; i < 7; i++)
+    {
+      int codigoAscii = toascii(cadena[i]);
+
+      if(codigoAscii <= 57 && codigoAscii >= 48)
+      {
+
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+    //Comprobamos segundo /
+    if (cadena[7] == '/')
+    {
+      
+    }
+    else
+    {
+      return 0;
+    }
+
+    //Comprobamos DIAS DD
+    for (i = 8; i < 10; i++)
+    {
+      int codigoAscii = toascii(cadena[i]);
+
+      if(codigoAscii <= 57 && codigoAscii >= 48)
+      {
+
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+  }
+  else
+  {
+    return 0;
+  }
+  return 1;
+  
+}
+
+char trim (char *cadena)
+{
+
+}
+
+/*char minus (char *cadena)
+{
+  for (int indice = 0; cadena[indice] != '\0'; ++indice)
+  {
+		cadena[indice] = tolower(cadena[indice]);
+	}
+  return 
+}*/
 
 void datosPersonales()
 {
