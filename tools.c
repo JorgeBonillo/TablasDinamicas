@@ -116,8 +116,8 @@ void obtenerCadena(char *cadena, char *sep, int n, char *cad)
 void vaciarChar(char *cadenaLimpiar)
 {
   int j=0;
-  int longitud = strlen(cadenaLimpiar);
-  for ( j = 0; j <= longitud; j++)
+  //int longitud = strlen(cadenaLimpiar);
+  for ( j = 0; j <= 100; j++)
   {
     cadenaLimpiar[j]= '\0';
   }
@@ -164,6 +164,7 @@ int numColumnas(char *nomfc, char *sep)
 int numFilas(char *nomfc, char *sep)
 {
   FILE *f;
+  //Desde 0 por que la primera fila no se cuenta
   int fila = 0;
   char temp[1000];
   f = fopen(nomfc, "r");
@@ -193,10 +194,12 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
   FILE *f;
   int fila=0;
   int colum=0;
+  int linea = 1;
+  int primerIter = 1;
   char temp[1000];
   char temp2[1000];
   char *cadena[30];
-  char cad[50];
+  char cad[100];
   char aux = '0';
   COLUMNA* pCol, pColAux;
   ETIQUETA* pEtiq;
@@ -214,16 +217,18 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
     fgets(temp,1000,f);
 
     pCol = meta -> p;
-
-    for (int j = 0; j <= 50; j++)
-      {
-        cad[j]= '\0';
-      }
+    //Vaciar cad
+    vaciarChar(cad);
+    
+    //Poner nombres a las cadenas
     for (int i = 0; i < colum; i++)
       {
         obtenerCadena(temp, sep, i, cad);
 
         pCol->nom = strdup(cad);
+        pCol ->max = 0;
+        pCol ->min = 0;
+        pCol ->prom = 0;
         pCol->lista = NULL;
 
         if (i == colum-1)
@@ -242,46 +247,51 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
     pCol = meta -> p;
     pEtiq = pCol -> lista;
     pColAux = *pCol;
-    
-    while (!feof(f))
-    {
-      fgets(temp2,1000,f);
 
+      fgets(temp2,1000,f);
+      //Comprobar que la 1 y 2 fila tienen las mismas columnas
       if (obtenerColumnas(sep, temp2) == colum)
-      {
+      { 
         for (int i = 0; i < colum; i++)
         {
           obtenerCadena(temp2, sep, i, cad);
-          comprobarTipo(cad);
+          if (comprobarTipo(cad) == STR)
+          {
+            pCol -> t = STR;
 
-          if(buscarEtiq(cad, pCol) == NULL)
-          { 
-            if (pCol->lista == NULL)
-            {
-              pCol->lista = (ETIQUETA*)malloc(sizeof(ETIQUETA));
-              pEtiq = pCol ->lista;
-              pEtiq ->siguiente = NULL;
-            }
+            if(buscarEtiq(cad, pCol) == NULL)
+            { 
+              if (pCol->lista == NULL)
+              {
+                pCol->lista = (ETIQUETA*)malloc(sizeof(ETIQUETA));
+                pEtiq = pCol ->lista;
+                pEtiq ->siguiente = NULL;
+              }
+              else
+              {
+                while (pEtiq->siguiente)
+                {
+                  pEtiq = pEtiq -> siguiente;
+                }
+                pEtiq = pEtiq -> siguiente = (ETIQUETA*)malloc(sizeof(ETIQUETA));
+                pEtiq ->siguiente = NULL;
+              }
+              
+              pEtiq -> etiqueta = strdup(cad);
+              pEtiq -> cuenta = 1;
+            } 
             else
             {
-              while (pEtiq->siguiente)
-              {
-                pEtiq = pEtiq -> siguiente;
-              }
-              pEtiq = pEtiq -> siguiente = (ETIQUETA*)malloc(sizeof(ETIQUETA));
-              pEtiq ->siguiente = NULL;
+              pEtiq = buscarEtiq(cad, pCol);
+              pEtiq -> cuenta = (pEtiq -> cuenta + 1);
             }
-            
-            pEtiq -> etiqueta = strdup(cad);
-            pEtiq -> cuenta = 1;
-          } 
+          }
           else
           {
-            pEtiq = buscarEtiq(cad, pCol);
-            pEtiq -> cuenta = (pEtiq -> cuenta + 1);
-
+            // Tipo distinto a STR
+            pCol -> t = comprobarTipo(cad);
           }
-          
+
           pCol = pCol -> next;
           if (pCol == NULL)
           {
@@ -291,49 +301,165 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
           {
             pEtiq = pCol -> lista;
           }
-          for (int j = 0; j <= 50; j++)
-          {
-            cad[j]= '\0';
-          }
+
+          vaciarChar(cad);
         }
+        linea++;
       }
       else
       {
-        printf("error en la fila");
+        //Error archivo
+        return 0;
       }
       
+    pCol = meta -> p;
+    pEtiq = pCol -> lista;
+    pColAux = *pCol;
+    
+    int error;
+    while (!feof(f))
+    {
+      linea++;
+      error = 0;
+      fgets(temp2,1000,f);
+
+      if (obtenerColumnas(sep, temp2) == colum)
+      { 
+
+        //Comprobacion para saber si la fila es correcta
+        // 1 = es correcta
+        // 0 = NO 
+        if (comprobacionFila(meta, temp2, sep) == 1)
+        {
+          //printf("Fila: %d correcta \n", linea);
+          for (int i = 0; i < colum; i++)
+          {
+            obtenerCadena(temp2, sep, i, cad);
+            if (pCol -> t == STR)
+            {
+                if(buscarEtiq(cad, pCol) == NULL)
+                { 
+                  if (pCol->lista == NULL)
+                  {
+                    pCol->lista = (ETIQUETA*)malloc(sizeof(ETIQUETA));
+                    pEtiq = pCol ->lista;
+                    pEtiq ->siguiente = NULL;
+                  }
+                  else
+                  {
+                    while (pEtiq->siguiente)
+                    {
+                      pEtiq = pEtiq -> siguiente;
+                    }
+                    pEtiq = pEtiq -> siguiente = (ETIQUETA*)malloc(sizeof(ETIQUETA));
+                    pEtiq ->siguiente = NULL;
+                  }  
+                  pEtiq -> etiqueta = strdup(cad);
+                  pEtiq -> cuenta = 1;
+                } 
+                else
+                {
+                  pEtiq = buscarEtiq(cad, pCol);
+                  pEtiq -> cuenta = (pEtiq -> cuenta + 1);
+                }  
+            }
+            else if (pCol -> t == NUM)
+            {
+              if (comprobarTipo(cad) == NUM)
+              {
+                
+              }
+              else
+              {
+                error = 1;
+                break;
+              }    
+            }
+            else if (pCol -> t == DATE)
+            {
+              /* code */
+            }
+            else
+            {
+              /* code */
+            }
+            
+            //NEXT COL
+            pCol = pCol -> next;
+            if (pCol == NULL)
+            {
+              pCol = &pColAux;
+            }
+            else
+            {
+              pEtiq = pCol -> lista;
+            }
+
+            vaciarChar(cad);
+          }
+        }
+        else
+        {
+          //error = 1;
+          printf("Error en la fila: %d\n", linea);
+          meta -> nErrs = (meta -> nErrs + 1);
+          pCol = meta -> p;
+          pEtiq = pCol -> lista;
+          pColAux = *pCol;
+          vaciarChar(cad);
+        }
+        
+        
+        /*if (error == 1)
+        {
+          printf("Error en la linea: %d\n", linea);
+          meta -> nErrs = (meta -> nErrs + 1);
+          pCol = meta -> p;
+          pEtiq = pCol -> lista;
+          pColAux = *pCol;
+          vaciarChar(cad);
+        }*/
+        //linea ++;
+      }
+      else
+      {
+        printf("Error en la fila: %d\n", linea);
+        printf("error en la fila");
+      }
       
     }
     
   }
-
+  fclose(f);
   return 0;
 }
 
 int renombrarColum (char *columVieja, char *columNueva, METADATOS *meta)
 {
-  COLUMNA* pCol;
+  COLUMNA* pColrenombrarColum = buscarCol(meta, columVieja);
 
-  pCol = buscarCol(meta, columVieja);
+  //pColrenombrarColum = buscarCol(meta, columVieja);
 
-  if(pCol == NULL)
+  if(pColrenombrarColum == NULL)
   {
-    printf("No existe la columna a modificar");
+    printf("No existe la columna a modificar\n");
     return 0;
   }
   else
   {
     if (buscarCol(meta, columNueva) == NULL)
     {
-      pCol ->nom = columNueva;
+      pColrenombrarColum -> nom = strdup(columNueva);
+      return 1;
     }
     else
     {
-      printf("La columna nueva ya existe");
+      printf("La columna nueva ya existe\n");
       return 0;
     }
   }
-  return 1;
+  
+  //return 1;
 }
 
 char *eliminarMenorMayor(char *cadena)
@@ -378,10 +504,8 @@ int infoColum(char *nomfc, METADATOS *meta, char *nomColum)
     printf("No existe la columna a buscar\n");
   }
   
-return 0;
+  return 0;
 }
-
-
 
 int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *operadorFiltro, char *valorFiltro)
 {
@@ -574,10 +698,50 @@ int esFecha (char *cadena)
   
 }
 
-char trim (char *cadena)
+int comprobacionFila(METADATOS *meta, char *fila, char *separador)
+{
+  COLUMNA *pCol = meta -> p;
+  char cadena[100];
+  int columnas = meta ->nCols;
+  
+  for (int i = 0; i < columnas; i++)
+  {
+    vaciarChar(cadena);
+    obtenerCadena(fila, separador, i, cadena);
+    if (pCol -> t == comprobarTipo(cadena))
+    {
+      pCol = pCol -> next;
+    }
+    else
+    {
+      return 0;
+    }
+    
+  }
+  return 1;
+}
+
+void infoValidar(METADATOS *meta)
+{
+  COLUMNA* pCol = meta -> p;
+  int contador = 1;
+  printf("Numero de filas incorrectas: %d\n", meta -> nErrs);
+  printf("Numero de filas correctas: %d\n", meta -> nFils);
+  printf("Numero de columnas: %d\n", meta -> nCols);
+
+  while (pCol)
+  {
+    printf("Columna %d: %s\n", contador, pCol -> nom);
+    pCol = pCol -> next;
+    contador++;
+  }
+  
+}
+
+/*char trim (char *cadena)
 {
 
-}
+}*/
 
 /*char minus (char *cadena)
 {

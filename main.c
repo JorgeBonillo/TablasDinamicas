@@ -9,8 +9,8 @@ int main(int argc, char const *argv[]) {
 
   char comando[100];
 
-  char *token[200];
-
+  char *token[10];
+  int validado = 0;
   char nomdb[100]="*";
   char nomfc[100];
   char sep[50];
@@ -37,6 +37,15 @@ int main(int argc, char const *argv[]) {
         {
           printf("INTRODUCE UN COMANDO\n");
         }
+        /*else if (comando == NULL)
+        {
+          printf("INTRODUCE UN COMANDO\n");
+        }
+        else
+        {
+          
+        }*/
+        
 
         //Caso el usuario ha introducido algo
         if (strcmp(comando, "") !=0)
@@ -76,13 +85,15 @@ int main(int argc, char const *argv[]) {
         }
         else
         {
+          vaciarChar(nomfc);
           strcpy(nomfc, token[1]);
-          strcpy(sep, token[2]);
-          validarSep(sep);
+          strcpy(sep, validarSep(token[2]));
+          //validarSep(token[2]);
           if (cargarFichero(nomfc) == 1)
           {
             strcpy(nomdb, nomfc);
             strcpy(vali, "-?");
+            validado = 0;
           }    
           else
           {
@@ -104,9 +115,23 @@ int main(int argc, char const *argv[]) {
         {
           if (token[1] == NULL)
           {
-            meta = crearMetadatos(numColumnas(nomfc, sep), numFilas(nomfc, sep));
-            metaFiltros = crearFiltrosMeta();
-            validarBD(nomfc, sep, meta);
+            //Primera vez que se pone validar
+            if (validado == 0)
+            {
+              liberarMemoriaFiltros(metaFiltros);
+              liberarMemoriaMeta(meta);
+              meta = crearMetadatos(numColumnas(nomfc, sep), numFilas(nomfc, sep));
+              metaFiltros = crearFiltrosMeta();
+              validarBD(nomfc, sep, meta);
+              infoValidar(meta);
+              strcpy(vali, "");
+              validado = 1;
+            }
+            //Segunda o posterior vez ponemos el comando
+            else
+            {
+              infoValidar(meta);
+            }
           }
           else
           {
@@ -121,21 +146,22 @@ int main(int argc, char const *argv[]) {
         printf("caso RENOMBRAR\n");
         printf("------------\n");
 
-        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
-        //if (strcmp(vali, "")==0)
-        //{
+        if (validado == 1)
+        {
           if ((token[1] == NULL) || (token[2] == NULL))
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
           else
-          {
-            if ((comprobarMenorMayor(token[1]) == 1) && (comprobarMenorMayor(token[2]) == 1))
-            {
-              renombrarColum(eliminarMenorMayor(token[1]), eliminarMenorMayor(token[2]), meta);
-            }
+          {      
+            renombrarColum(token[1], token[2], meta);
           }
-        //}
+        }
+        else
+        {
+          printf("EL FICHERO NO ESTA VALIDAD\n");
+        }
+        
       break;
 
       case INFO:

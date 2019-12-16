@@ -17,17 +17,17 @@ METADATOS *crearMetadatos (int colum, int fila)
 
 COLUMNA *buscarCol (METADATOS* meta, char *nombre)
 {
-    COLUMNA* pCol;
+    COLUMNA* pColbuscarCol = NULL;
 
-    pCol = meta -> p;
+    pColbuscarCol = meta -> p;
 
-    while (pCol)
+    while (pColbuscarCol)
     {
-        if (strcmp(pCol->nom, nombre) == 0)
+        if (strcmp(pColbuscarCol->nom, nombre) == 0)
         {
-            return pCol;
+            return pColbuscarCol;
         }
-        pCol = pCol -> next;
+        pColbuscarCol = pColbuscarCol -> next;
         
     }
 
@@ -250,9 +250,8 @@ TIPO comprobarTipo (char *cadena)
     else
     {
         return VOID;
-    }
-    
-    
-    
+    }  
 }
+
+
    

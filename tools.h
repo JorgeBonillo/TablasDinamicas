@@ -94,6 +94,10 @@ int esFecha (char *cadena);
 
 int esCadena (char *cadena);
 
+int comprobacionFila(METADATOS *meta, char *fila, char *separador);
+
+void infoValidar(METADATOS *meta);
+
 //Funciones para datos PERSONALES
 void datosPersonales(); //Funcion para imprimir datos personales
 
