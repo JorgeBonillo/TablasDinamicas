@@ -8,7 +8,7 @@ METADATOS *crearMetadatos (int colum, int fila)
     METADATOS *nuevoMeta;
     nuevoMeta = (METADATOS*)malloc(sizeof(METADATOS));
     nuevoMeta->nCols = colum;
-    nuevoMeta->nFils = fila;
+    nuevoMeta->nFils = 0;
     nuevoMeta->nErrs = 0;
     nuevoMeta->p = (COLUMNA*)malloc(sizeof(COLUMNA));
 
@@ -68,6 +68,29 @@ FILTRO *buscarFiltroNum (int numBuscar, FILTROS *metaFiltros)
         pFiltr = pFiltr -> next;
     }
     return NULL;
+}
+
+int buscarColumnaNum (METADATOS *meta, char *nombreColumna)
+{
+    COLUMNA *pCol = meta -> p;
+    int contador = 0;
+    
+    /*if (strcmp(pCol->nom, nombreColumna) == 0)
+    {
+        return contador;
+    }*/
+
+    while (pCol)
+    {
+        if (strcmp(pCol->nom, nombreColumna) == 0)
+        {
+            return contador;
+        }
+        pCol = pCol ->next;
+        contador++;
+    }
+
+    return contador;
 }
 
 FILTROS *crearFiltrosMeta ()
@@ -253,5 +276,14 @@ TIPO comprobarTipo (char *cadena)
     }  
 }
 
+COLUMNA *buscarColumnaNumero (METADATOS *meta, int numeroCol)
+{
+    COLUMNA *pCol = meta -> p;
 
-   
+    for (int i = 0; i < numeroCol; i++)
+    {  
+        pCol = pCol ->next;
+    }
+    
+    return pCol;
+}

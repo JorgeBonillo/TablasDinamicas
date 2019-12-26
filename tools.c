@@ -80,6 +80,7 @@ int cargarFichero(char *nombreFichero)
     //printf("El fichero existe\n");
     ok = 1;
   }
+  fclose(fp);
   return ok;
 }
 
@@ -195,6 +196,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
   int fila=0;
   int colum=0;
   int linea = 1;
+  int correctas = 1;
   int primerIter = 1;
   char temp[1000];
   char temp2[1000];
@@ -397,6 +399,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
 
             vaciarChar(cad);
           }
+          correctas++;
         }
         else
         {
@@ -409,27 +412,17 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
           vaciarChar(cad);
         }
         
-        
-        /*if (error == 1)
-        {
-          printf("Error en la linea: %d\n", linea);
-          meta -> nErrs = (meta -> nErrs + 1);
-          pCol = meta -> p;
-          pEtiq = pCol -> lista;
-          pColAux = *pCol;
-          vaciarChar(cad);
-        }*/
-        //linea ++;
       }
       else
       {
         printf("Error en la fila: %d\n", linea);
-        printf("error en la fila");
+        //printf("error en la fila");
       }
       
     }
     
   }
+  meta ->nFils = correctas;
   fclose(f);
   return 0;
 }
@@ -491,19 +484,109 @@ int obtenerColumnas(char *sep, char *cadena)
   
 }
 
-int infoColum(char *nomfc, METADATOS *meta, char *nomColum)
+int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
 {
-  COLUMNA *pCol = buscarCol(meta, nomColum);
-
-  if(pCol != NULL)
+  COLUMNA *pColBuscar = buscarCol(meta, nomColum);
+  COLUMNA *pCol = meta -> p;
+  char temp[1000];
+  int colum = meta -> nCols;
+  char cad[100];
+  
+  if(pColBuscar ==  NULL)
   {
-    
+    printf("No existe la columna a buscar\n");
+    return 0;
   }
   else
   {
-    printf("No existe la columna a buscar\n");
+    FILE *fp;
+    fp = fopen (nomFichero, "r" );
+    COLUMNA *pCol = NULL;
+    float valor;
+    int primeraVez = 0;
+    int veces = 1;
+
+    if (fp == NULL)
+    {
+      printf("Error apertura archivo\n");
+      return 0;
+    }
+    else
+    {
+      fgets(temp,1000,fp);
+
+      while (!feof(fp))
+      {
+        fgets(temp,1000,fp);
+
+        if (obtenerColumnas(sep, temp) == colum)
+        { 
+          if (comprobacionFila(meta, temp, sep) == 1)
+          {
+            vaciarChar(cad);
+            pCol = buscarCol(meta, nomColum);
+            if (pCol == NULL)
+            {
+              printf("Columna INFO no existe\n"); 
+            }
+            else
+            {
+              if (pCol -> t == NUM)
+              {
+                obtenerCadena(temp, sep, buscarColumnaNum(meta, nomColum), cad);
+                valor = atof(cad);
+                if (primeraVez == 0)
+                {
+                  pCol ->max = valor;
+                  pCol ->min = valor;
+                  pCol ->prom = valor;
+                  primeraVez = 1;
+                }
+                else
+                {
+                  if (valor > pCol -> max)
+                  {
+                    pCol->max = valor;
+                  }
+                  if (valor < pCol -> min)
+                  {
+                    pCol ->min = valor;
+                  }
+                  printf("%s\n",cad);
+                  pCol -> prom = (((pCol -> prom) * veces) + valor)/ (veces + 1);
+                  veces++;
+                  //printf("%s\n",cad);
+                }
+              }
+              else if (pCol -> t == DATE)
+              {
+                
+              }
+              else if (pCol -> t == STR)
+              {
+                ETIQUETA *pEtiq = pCol ->lista;
+                while (pEtiq)
+                {
+                  printf("Etiqueta: %s\n", pEtiq -> etiqueta);
+                  printf("Repeticiones: %d\n", pEtiq -> cuenta);
+                  printf("----------\n");
+                  pEtiq = pEtiq -> siguiente;
+                }               
+              }            
+            }
+            obtenerCadena(temp, sep, buscarColumnaNum(meta, nomColum), cad);
+            //printf("%s\n",cad);      
+          }
+        }
+      }
+      if ((pCol -> t == NUM) || (pCol -> t == NUM))
+      {
+        printf("Min: %f\n", pCol ->min);
+        printf("Max: %f\n", pCol ->max);
+        printf("Prom: %f\n", pCol ->prom);
+      }
+    }
   }
-  
   return 0;
 }
 
@@ -737,6 +820,202 @@ void infoValidar(METADATOS *meta)
   }
   
 }
+
+/*
+int dateTOint (char *fecha)
+{
+  int anyo = 0;
+  int mes = 0;
+  int dia = 0;
+
+
+}*/
+
+char *minus(char *cadena)
+{
+    int l = 0;
+    while (l != strlen(cadena)){
+        if ((cadena[l] >= 'A') && (cadena[l]  <= 'Z')){cadena[l]  = cadena[l]  + 32;}
+        l++;
+    }
+    return cadena;
+}
+
+
+int filtroCuenta(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep)
+{
+  FILTRO *pFiltro = NULL;
+  COLUMNA *pCol = NULL;
+  int colum = meta -> nCols;
+  FILE *fp;
+  fp = fopen (nomfc, "r" );
+  char temp[1000];
+  char cad[100];
+  float cadF, valorFiltro;
+  int cuenta=0;
+  int cumple = 3;
+
+  if (fp == NULL)
+  {
+    printf("Error apertura archivo\n");
+    return 0;
+  }
+  else
+  {
+    fgets(temp,1000,fp);
+
+    while (!feof(fp))
+    {
+      fgets(temp,1000,fp);
+      cumple = 3;
+       if (obtenerColumnas(sep, temp) == colum)
+        { 
+          if (comprobacionFila(meta, temp, sep) == 1)
+          {
+            for (int i = 0; i < colum; i++)
+            {
+              pFiltro = metaFiltros -> p;
+              vaciarChar(cad);
+              obtenerCadena(temp, sep, i, cad);
+              pCol = buscarColumnaNumero(meta, i);
+
+              //Cuando sea 0 es por que la fila no cumple los filtros
+              if (cumple != 0)
+              {
+                while (pFiltro)
+                {
+                  if (pFiltro->pCol == pCol)
+                  {
+                    if (pCol ->t == NUM)
+                    {
+                      cadF = atof(cad);
+                      valorFiltro = atof(pFiltro ->valor);
+                      if (pFiltro ->operador == IGUAL)
+                      {
+                        if (cadF == valorFiltro)
+                        {
+                          cumple = 1;
+                        }
+                        else
+                        {
+                          cumple = 0;
+                          break;
+                        }
+                        
+                      }
+                      else if (pFiltro ->operador == DISTINTO)
+                      {
+                        if (cadF != valorFiltro)
+                        {
+                          cumple = 1;
+                        }
+                        else
+                        {
+                          cumple = 0;
+                          break;
+                        }
+                      }
+                      else if (pFiltro ->operador == MENOR)
+                      {
+                        if (cadF < valorFiltro)
+                        {
+                          cumple = 1;
+                        }
+                        else
+                        {
+                          cumple = 0;
+                          break;
+                        }
+                      }
+                      else if (pFiltro ->operador == MENORIGUAL)
+                      {
+                        if (cadF <= valorFiltro)
+                        {
+                          cumple = 1;
+                        }
+                        else
+                        {
+                          cumple = 0;
+                          break;
+                        }
+                      }
+                      else if (pFiltro ->operador == MAYOR)
+                      {
+                        if (cadF > valorFiltro)
+                        {
+                          cumple = 1;
+                        }
+                        else
+                        {
+                          cumple = 0;
+                          break;
+                        }
+                      }
+                      else if (pFiltro ->operador == MAYORIGUAL)
+                      {
+                        if (cadF >= valorFiltro)
+                        {
+                          cumple = 1;
+                        }
+                        else
+                        {
+                          cumple = 0;
+                          break;
+                        }
+                      }
+                    }
+                    else if (pCol ->t == STR)
+                    {
+                      if (pFiltro ->operador == IGUAL)
+                      {
+                        if (strcmp(cad, pFiltro->valor) == 0)
+                        {
+                          cumple = 1;
+                        }
+                        else
+                        {
+                          cumple = 0;
+                        }
+                      }
+                      else if (pFiltro ->operador == DISTINTO)
+                      {
+                        if (strcmp(cad, pFiltro->valor) == 1)
+                        {
+                          cuenta++;
+                        }
+                      }
+                    }
+                  }
+                  pFiltro = pFiltro ->next;
+                }
+              }
+            }
+            if (cumple == 1)
+            {
+              cuenta++;
+            }
+          }
+        }
+    } 
+  }
+  printf("Recuento total que cumplen los filtros: %d\n", cuenta);
+  fclose(fp);
+  return 1;
+}
+
+/*
+int filtroTotal(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep)
+{
+  FILTRO *pFiltro = NULL;
+  COLUMNA *pCol = NULL;
+  int colum = meta -> nCols;
+  FILE *fp;
+  fp = fopen (nomfc, "r" );
+  char temp[1000];
+  char cad[100];
+  float cadF, valorFiltro;
+}*/
+
 
 /*char trim (char *cadena)
 {

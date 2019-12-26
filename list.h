@@ -19,3 +19,7 @@ int liberarMemoriaMeta (METADATOS *metaColumnas);
 OPERANDO comprobarOperando (char *operan);
 
 TIPO comprobarTipo (char *cadena);
+
+int buscarColumnaNum (METADATOS *meta, char *nombreColumna);
+
+COLUMNA *buscarColumnaNumero (METADATOS *meta, int numeroCol);

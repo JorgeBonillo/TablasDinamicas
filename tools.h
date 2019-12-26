@@ -98,6 +98,13 @@ int comprobacionFila(METADATOS *meta, char *fila, char *separador);
 
 void infoValidar(METADATOS *meta);
 
+int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum);
+
+int filtroCuenta(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep);
+
+char *minus(char *cadena);
+
+
 //Funciones para datos PERSONALES
 void datosPersonales(); //Funcion para imprimir datos personales
 

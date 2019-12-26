@@ -159,7 +159,7 @@ int main(int argc, char const *argv[]) {
         }
         else
         {
-          printf("EL FICHERO NO ESTA VALIDAD\n");
+          printf("EL FICHERO NO ESTA VALIDADO\n");
         }
         
       break;
@@ -168,24 +168,21 @@ int main(int argc, char const *argv[]) {
         printf("caso INFO\n");
         printf("------------\n");
 
-        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
-        //if (strcmp(vali, "")==0)
-        //{
-
+        if (validado == 1)
+        {
           if (token[1] == NULL)
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
           else
           {
-            if (comprobarMenorMayor(token[1]) == 1)
-            {
-
-            }
-          }
-          
-
-        //}
+            infoColum(nomfc, sep, meta, token[1]);
+          } 
+        }
+        else
+        {
+          printf("EL FICHERO NO ESTA VALIDADO\n");
+        }
       break;
 
       case FILTROPROM:
@@ -195,22 +192,13 @@ int main(int argc, char const *argv[]) {
         //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
         //if (strcmp(vali, "")==0)
         //{
-          if ((token[1] == NULL) || (token[2] == NULL) || (token[3] == NULL))
+          if ((token[1] == NULL) || (token[2] == NULL) || (token[3] == NULL) || (token[4] != NULL))
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
           else
-          {
-            if ((comprobarMenorMayor(token[1]) == 1) && (comprobarMenorMayor(token[2]) == 1) && (comprobarMenorMayor(token[3]) == 1))
-            {
-              anadirFiltro(metaFiltros, meta, eliminarMenorMayor(token[1]), eliminarMenorMayor(token[2]), eliminarMenorMayor(token[3]));
-            }
-            else
-            {
-              printf("Error\n");
-            }
-            
-            
+          {           
+            anadirFiltro(metaFiltros, meta, token[1], token[2], token[3]);           
           }
           
         //}
@@ -271,16 +259,55 @@ int main(int argc, char const *argv[]) {
         //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
         //if (strcmp(vali, "")==0)
         //{
-          if (token[1] == NULL)
+        if (validado == 1)
+        {
+          if (strcmp(minus(token[1]), "cuenta") == 0)
           {
-            printf("INTRODUCE UN COMANDO VALIDO\n");
+            printf("CUENTA\n");
+            if (token[2] == NULL)
+            {
+              filtroCuenta(meta, metaFiltros, nomfc, sep);
+            }
+            else
+            {
+              printf("INTRODUCE UN COMANDO VALIDO\n");
+            }
+          }
+          else if (strcmp(minus(token[1]), "total") == 0)
+          {
+            printf("TOTAL\n");
+            if (token[3] == NULL)
+            {
+              //filtroTotal(meta, metaFiltros, nomfc, sep);
+            }
+            else
+            {
+              printf("INTRODUCE UN COMANDO VALIDO\n");
+            }
+            
+          }
+          else if (strcmp(minus(token[1]), "promedio") == 0)
+          {
+            printf("PROMEDIO\n");
+            if (token[3] == NULL)
+            {
+
+            }
+            else
+            {
+              printf("INTRODUCE UN COMANDO VALIDO\n");
+            }
           }
           else
           {
-            
+            printf("INTRODUCE UN COMANDO VALIDO\n");
           }
-
-        //}
+        }
+        else
+        {
+           printf("EL FICHERO NO ESTA VALIDADO\n");
+        }
+        
       break;
 
       case GUARDAR:
