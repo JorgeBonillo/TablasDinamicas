@@ -70,7 +70,7 @@ FILTRO *buscarFiltroNum (int numBuscar, FILTROS *metaFiltros)
     return NULL;
 }
 
-int buscarColumnaNum (METADATOS *meta, char *nombreColumna)
+int buscarColumnaNombre (METADATOS *meta, char *nombreColumna)
 {
     COLUMNA *pCol = meta -> p;
     int contador = 0;
@@ -258,13 +258,13 @@ OPERANDO comprobarOperando (char *operan)
 
 TIPO comprobarTipo (char *cadena)
 {
-    if (esFecha(cadena) == 1)
-    {
-        return DATE;
-    }
-    else if (esNumero(cadena) == 1)
+    if (esNumero(cadena) == 1)
     {
         return NUM;
+    }
+    else if (esFecha(cadena) == 1)
+    {
+        return DATE;
     }
     else if (esCadena(cadena) == 1)
     {
@@ -276,6 +276,7 @@ TIPO comprobarTipo (char *cadena)
     }  
 }
 
+//Nos devuelve un puntero a la columna con numero numeroCol
 COLUMNA *buscarColumnaNumero (METADATOS *meta, int numeroCol)
 {
     COLUMNA *pCol = meta -> p;

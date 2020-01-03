@@ -102,6 +102,24 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum);
 
 int filtroCuenta(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep);
 
+int filtroTotal(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep, char *columna);
+
+int filaCumpleFiltro(METADATOS *meta, FILTROS *metaFiltros, char *temp, char *sep);
+
+int filtroPromedio(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep, char *columna);
+
+char *devuelveOperador(FILTRO *pFiltro);
+
+char *trim(char *s);
+
+int fechaAserie(int anyo, int mes, int dia);
+
+void serieAfecha(int serie, int *anyo, int *mes, int *dia);
+
+void diasRestMenorAnyo(int diasRest, int *mes, int *dia, int *acumuladoDiasMes);
+
+void serieFecha(int serie, int *anyo, int *mes, int *dia, int indice, int *acumuladoDiasMes);
+
 char *minus(char *cadena);
 
 

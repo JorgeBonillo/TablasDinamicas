@@ -170,7 +170,7 @@ int main(int argc, char const *argv[]) {
 
         if (validado == 1)
         {
-          if (token[1] == NULL)
+          if (token[1] == NULL || token[2] != NULL)
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
@@ -189,9 +189,8 @@ int main(int argc, char const *argv[]) {
         printf("caso FILTRO\n");
         printf("------------\n");
 
-        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
-        //if (strcmp(vali, "")==0)
-        //{
+        if (validado == 1)
+        {
           if ((token[1] == NULL) || (token[2] == NULL) || (token[3] == NULL) || (token[4] != NULL))
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
@@ -200,17 +199,15 @@ int main(int argc, char const *argv[]) {
           {           
             anadirFiltro(metaFiltros, meta, token[1], token[2], token[3]);           
           }
-          
-        //}
+        }
       break;
 
       case FILTROSPROM:
         printf("caso FILTROs\n");
         printf("------------\n");
 
-        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
-        //if (strcmp(vali, "")==0)
-        //{
+        if (validado == 1)
+        {
           if (token[1] == NULL)
           {
             imprimirFiltros(metaFiltros);
@@ -219,46 +216,38 @@ int main(int argc, char const *argv[]) {
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
-          
-
-        //}
+        }
+        else
+        {
+          printf("EL FICHERO NO ESTA VALIDADO\n");
+        }
       break;
 
       case BORRAR:
         printf("caso BORRAR\n");
         printf("------------\n");
 
-        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
-        //if (strcmp(vali, "")==0)
-        //{
-          if (token[1] == NULL)
+        if (validado == 1)
+        {
+          if (token[1] == NULL || token[2] != NULL)
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
           else
           {
-            if (comprobarMenorMayor(token[1]) == 1)
-            {
-              eliminarFiltro(metaFiltros, eliminarMenorMayor(token[1]));
-            }
-            else
-            {
-              printf("Error\n");
-            }
-            
+              eliminarFiltro(metaFiltros, token[1]);
           }
-          
-
-        //}
+        }
+        else
+        {
+          printf("EL FICHERO NO ESTA VALIDADO\n");
+        }
       break;
 
       case APLICAR:
         printf("caso APLICAR\n");
         printf("------------\n");
 
-        //TODO QUITAR CUANDO SE FINALICE EL COMANDO VALIDAR
-        //if (strcmp(vali, "")==0)
-        //{
         if (validado == 1)
         {
           if (strcmp(minus(token[1]), "cuenta") == 0)
@@ -278,7 +267,7 @@ int main(int argc, char const *argv[]) {
             printf("TOTAL\n");
             if (token[3] == NULL)
             {
-              //filtroTotal(meta, metaFiltros, nomfc, sep);
+              filtroTotal(meta, metaFiltros, nomfc, sep, token[2]);
             }
             else
             {
@@ -291,7 +280,7 @@ int main(int argc, char const *argv[]) {
             printf("PROMEDIO\n");
             if (token[3] == NULL)
             {
-
+              filtroPromedio(meta, metaFiltros, nomfc, sep, token[2]);
             }
             else
             {
@@ -305,7 +294,7 @@ int main(int argc, char const *argv[]) {
         }
         else
         {
-           printf("EL FICHERO NO ESTA VALIDADO\n");
+          printf("EL FICHERO NO ESTA VALIDADO\n");
         }
         
       break;
@@ -313,6 +302,11 @@ int main(int argc, char const *argv[]) {
       case GUARDAR:
         printf("caso GUARDAR\n");
         printf("------------\n");
+        char test[20] = "  \n \r hola \t\v\f";
+        char temp[20];
+        int anyo = 0;
+        int mes = 0;
+        int dia = 0;
 
         if (token[1] == NULL || token[2] == NULL)
         {
@@ -320,13 +314,14 @@ int main(int argc, char const *argv[]) {
         }
         else
         {
-          if ((comprobarMenorMayor(token[1]) == 0) && comprobarMenorMayor(token[2]) == 1)
+          if (strcmp(token[1], "meta") == 0)
           {
-            if (strcmp(token[1], "meta") == 0)
-            {
-              printf("COMANDO OK \n");
-            }
+            printf("COMANDO OK \n");
+            //printf("%s\n",trim("  hola  "));
+           //printf("%d\n",fechaAserie(2019,01,20));
+           serieAfecha(737079,&anyo,&mes,&dia);
           }
+          
         }
         
       break;

@@ -227,7 +227,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
       {
         obtenerCadena(temp, sep, i, cad);
 
-        pCol->nom = strdup(cad);
+        pCol->nom = strdup(trim(cad));
         pCol ->max = 0;
         pCol ->min = 0;
         pCol ->prom = 0;
@@ -257,7 +257,8 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
         for (int i = 0; i < colum; i++)
         {
           obtenerCadena(temp2, sep, i, cad);
-          if (comprobarTipo(cad) == STR)
+
+          if (comprobarTipo(trim(cad)) == STR)
           {
             pCol -> t = STR;
 
@@ -291,7 +292,8 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
           else
           {
             // Tipo distinto a STR
-            pCol -> t = comprobarTipo(cad);
+            obtenerCadena(temp2, sep, i, cad);
+            pCol -> t = comprobarTipo(trim(cad));
           }
 
           pCol = pCol -> next;
@@ -356,7 +358,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
                     pEtiq = pEtiq -> siguiente = (ETIQUETA*)malloc(sizeof(ETIQUETA));
                     pEtiq ->siguiente = NULL;
                   }  
-                  pEtiq -> etiqueta = strdup(cad);
+                  pEtiq -> etiqueta = strdup(trim(cad));
                   pEtiq -> cuenta = 1;
                 } 
                 else
@@ -367,7 +369,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
             }
             else if (pCol -> t == NUM)
             {
-              if (comprobarTipo(cad) == NUM)
+              if (comprobarTipo(trim(cad)) == NUM)
               {
                 
               }
@@ -379,7 +381,15 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
             }
             else if (pCol -> t == DATE)
             {
-              /* code */
+              if (comprobarTipo(trim(cad)) == DATE)
+              {
+                
+              }
+              else
+              {
+                error = 1;
+                break;
+              }    
             }
             else
             {
@@ -528,13 +538,45 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
             if (pCol == NULL)
             {
               printf("Columna INFO no existe\n"); 
+              return 0;
             }
             else
             {
               if (pCol -> t == NUM)
               {
-                obtenerCadena(temp, sep, buscarColumnaNum(meta, nomColum), cad);
-                valor = atof(cad);
+                obtenerCadena(temp, sep, buscarColumnaNombre(meta, nomColum), cad);
+                valor = atof(trim(cad));
+                if (primeraVez == 0)
+                {
+                  pCol ->max = valor;
+                  pCol ->min = valor;
+                  pCol ->prom = valor;
+                  primeraVez = 1;
+                  //printf("%s\n",cad);
+                }
+                else
+                {
+                  if (valor > pCol -> max)
+                  {
+                    pCol->max = valor;
+                  }
+                  if (valor < pCol -> min)
+                  {
+                    pCol ->min = valor;
+                  }
+                  //printf("%s\n",cad);
+                  pCol -> prom = (((pCol -> prom) * veces) + valor)/ (veces + 1);
+                  veces++;
+                  //printf("%s\n",cad);
+                }
+              }
+              else if (pCol -> t == DATE)
+              {
+                obtenerCadena(temp, sep, buscarColumnaNombre(meta, nomColum), cad);
+                int anyo = atoi(strtok(cad,"/"));
+                int mes = atoi(strtok(NULL, "/"));
+                int dia = atoi(strtok(NULL, "/"));
+                valor = fechaAserie(anyo, mes, dia);
                 if (primeraVez == 0)
                 {
                   pCol ->max = valor;
@@ -552,15 +594,11 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
                   {
                     pCol ->min = valor;
                   }
-                  printf("%s\n",cad);
+                  //printf("%s\n",cad);
                   pCol -> prom = (((pCol -> prom) * veces) + valor)/ (veces + 1);
                   veces++;
                   //printf("%s\n",cad);
                 }
-              }
-              else if (pCol -> t == DATE)
-              {
-                
               }
               else if (pCol -> t == STR)
               {
@@ -574,26 +612,152 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
                 }               
               }            
             }
-            obtenerCadena(temp, sep, buscarColumnaNum(meta, nomColum), cad);
-            //printf("%s\n",cad);      
+            obtenerCadena(temp, sep, buscarColumnaNombre(meta, nomColum), cad);   
           }
         }
       }
-      if ((pCol -> t == NUM) || (pCol -> t == NUM))
+      //HISTOGRAMA NUM
+      if (pCol -> t == NUM)
+      {
+        rewind(fp);
+        fgets(temp,1000,fp);
+        for (int i = 0; i<5; i++)
+        {
+          pCol ->histograma[i] = 0;
+        }
+
+        //HISTOGRAMA
+        while (!feof(fp))
+        {
+          fgets(temp,1000,fp);
+
+          if (obtenerColumnas(sep, temp) == colum)
+          { 
+            if (comprobacionFila(meta, temp, sep) == 1)
+            {
+              vaciarChar(cad);
+              obtenerCadena(temp, sep, buscarColumnaNombre(meta, nomColum), cad);
+              valor = atof(trim(cad));
+              float maxMinusmin = (((pCol -> max) - (pCol -> min))/5);
+              if (valor <= (maxMinusmin + pCol -> min))
+              {
+                pCol ->histograma[0] = pCol ->histograma[0] +1;
+              }
+              else if (valor <= ((maxMinusmin*2) + pCol -> min))
+              {
+                pCol ->histograma[1] = pCol ->histograma[1] +1;
+              }
+              else if (valor <= ((maxMinusmin*3) + pCol -> min))
+              {
+                pCol ->histograma[2] = pCol ->histograma[2] +1;
+              }
+              else if (valor <= ((maxMinusmin*4) + pCol -> min))
+              {
+                pCol ->histograma[3] = pCol ->histograma[3] +1;
+              }
+              else if (valor <= ((maxMinusmin*5) + pCol -> min))
+              {
+                pCol ->histograma[4] = pCol ->histograma[4] +1;
+              }
+            }   
+          }
+        }
+      } 
+      else if (pCol -> t == DATE)
+      {
+        rewind(fp);
+        fgets(temp,1000,fp);
+        for (int i = 0; i<5; i++)
+        {
+          pCol ->histograma[i] = 0;
+        }
+
+        //HISTOGRAMA
+        while (!feof(fp))
+        {
+          fgets(temp,1000,fp);
+
+          if (obtenerColumnas(sep, temp) == colum)
+          { 
+            if (comprobacionFila(meta, temp, sep) == 1)
+            {
+              vaciarChar(cad);
+              obtenerCadena(temp, sep, buscarColumnaNombre(meta, nomColum), cad);
+              int anyo = atoi(strtok(cad,"/"));
+              int mes = atoi(strtok(NULL, "/"));
+              int dia = atoi(strtok(NULL, "/"));
+              valor = fechaAserie(anyo, mes, dia);
+              float maxMinusmin = (((pCol -> max) - (pCol -> min))/5);
+              if (valor <= (maxMinusmin + pCol -> min))
+              {
+                pCol ->histograma[0] = pCol ->histograma[0] +1;
+              }
+              else if (valor <= ((maxMinusmin*2) + pCol -> min))
+              {
+                pCol ->histograma[1] = pCol ->histograma[1] +1;
+              }
+              else if (valor <= ((maxMinusmin*3) + pCol -> min))
+              {
+                pCol ->histograma[2] = pCol ->histograma[2] +1;
+              }
+              else if (valor <= ((maxMinusmin*4) + pCol -> min))
+              {
+                pCol ->histograma[3] = pCol ->histograma[3] +1;
+              }
+              else if (valor <= ((maxMinusmin*5) + pCol -> min))
+              {
+                pCol ->histograma[4] = pCol ->histograma[4] +1;
+              }
+            }
+          }
+        }
+      }
+      if (pCol -> t == NUM)
       {
         printf("Min: %f\n", pCol ->min);
         printf("Max: %f\n", pCol ->max);
         printf("Prom: %f\n", pCol ->prom);
+        printf("HISTOGRAMA\n");
+        for (int i = 0; i<5; i++)
+        {
+          printf("%d\n", pCol ->histograma[i]);
+        }
       }
+      else if (pCol -> t == DATE)
+      {
+        int anyo = 0;
+        int mes = 0;
+        int dia =0;
+        int serieInt = (int)pCol ->min;
+        serieAfecha(serieInt, &anyo, &mes, &dia);
+        printf("Min: %d/%d/%d\n", anyo, mes, dia);
+
+        serieInt = (int)pCol ->max;
+        serieAfecha(serieInt, &anyo, &mes, &dia);
+        printf("Max: %d/%d/%d\n", anyo, mes, dia);
+
+        serieInt = (int)pCol ->prom;
+        serieAfecha(serieInt, &anyo, &mes, &dia);
+        printf("Prom: %d/%d/%d\n", anyo, mes, dia);
+
+        printf("HISTOGRAMA\n");
+        for (int i = 0; i<5; i++)
+        {
+          printf("%d\n", pCol ->histograma[i]);
+        }
+      }
+      
+    
     }
   }
-  return 0;
+  return 1;
 }
 
 int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *operadorFiltro, char *valorFiltro)
 {
   FILTRO *pFiltro = metaFiltros -> p;
   COLUMNA *pColFiltro = buscarCol(meta, columna);
+  char comprobacionFiltro[200];
   //char comprobacionOperando = comprobarOperando(operadorFiltro);
 
   if (comprobarOperando(operadorFiltro) == nulo)
@@ -601,11 +765,20 @@ int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *op
     printf("El operando no es valido\n");
     return 0;
   }
-  else
+  strcpy(comprobacionFiltro, valorFiltro);
+  if (pColFiltro ->t != comprobarTipo(comprobacionFiltro))
   {
-    printf("Operando valido");
+    return 0;
   }
-  
+  /*
+  strcpy(comprobacionFiltro, valorFiltro);
+  if (pColFiltro -> t == DATE)
+  {
+    if (comprobarTipo(comprobacionFiltro) != DATE)
+    {
+      return 0;
+    }
+  }*/
   if (pColFiltro == NULL)
   {
     printf("No existe la columna del filtro\n");
@@ -643,6 +816,7 @@ void imprimirFiltros(FILTROS *metaFiltros)
 {
   FILTRO *pFiltro = metaFiltros -> p;
   int contador = 1;
+  char devOperador[5];
 
   if(pFiltro == NULL)
   {
@@ -653,7 +827,8 @@ void imprimirFiltros(FILTROS *metaFiltros)
     while (pFiltro)
       {
         printf("Filtro %d:\n", contador);
-        printf("columna: %s - operador: %c - valor: %s\n", pFiltro ->pCol ->nom, pFiltro->operador, pFiltro->valor);
+        strcpy(devOperador, devuelveOperador(pFiltro));
+        printf("columna: %s - operador: %s - valor: %s\n", pFiltro ->pCol ->nom, devOperador, pFiltro->valor);
         pFiltro = pFiltro -> next;
         contador++;
       }
@@ -698,89 +873,6 @@ int esCadena (char *cadena)
   return 1;
 }
 
-int esFecha (char *cadena)
-{
-  int i;
-  
-  if (strlen(cadena) == 10)
-  {
-    
-    //Comprobamos ANYO YYYY
-    for (i = 0; i < 4; i++)
-    {
-      int codigoAscii = toascii(cadena[i]);
-
-      if(codigoAscii <= 57 && codigoAscii >= 48)
-      {
-
-      }
-      else
-      {
-        return 0;
-      }
-    }
-    
-    
-    //Comprobamos primer /
-    if (cadena[4] == '/')
-    {
-      
-    }
-    else
-    {
-      return 0;
-    }
-    
-    
-    //Comprobamos MESES MM
-    for (i = 5; i < 7; i++)
-    {
-      int codigoAscii = toascii(cadena[i]);
-
-      if(codigoAscii <= 57 && codigoAscii >= 48)
-      {
-
-      }
-      else
-      {
-        return 0;
-      }
-    }
-
-    //Comprobamos segundo /
-    if (cadena[7] == '/')
-    {
-      
-    }
-    else
-    {
-      return 0;
-    }
-
-    //Comprobamos DIAS DD
-    for (i = 8; i < 10; i++)
-    {
-      int codigoAscii = toascii(cadena[i]);
-
-      if(codigoAscii <= 57 && codigoAscii >= 48)
-      {
-
-      }
-      else
-      {
-        return 0;
-      }
-    }
-
-  }
-  else
-  {
-    return 0;
-  }
-  return 1;
-  
-}
-
 int comprobacionFila(METADATOS *meta, char *fila, char *separador)
 {
   COLUMNA *pCol = meta -> p;
@@ -791,7 +883,7 @@ int comprobacionFila(METADATOS *meta, char *fila, char *separador)
   {
     vaciarChar(cadena);
     obtenerCadena(fila, separador, i, cadena);
-    if (pCol -> t == comprobarTipo(cadena))
+    if (pCol -> t == comprobarTipo(trim(cadena)))
     {
       pCol = pCol -> next;
     }
@@ -821,16 +913,6 @@ void infoValidar(METADATOS *meta)
   
 }
 
-/*
-int dateTOint (char *fecha)
-{
-  int anyo = 0;
-  int mes = 0;
-  int dia = 0;
-
-
-}*/
-
 char *minus(char *cadena)
 {
     int l = 0;
@@ -853,7 +935,7 @@ int filtroCuenta(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep)
   char cad[100];
   float cadF, valorFiltro;
   int cuenta=0;
-  int cumple = 3;
+  //int cumple = 3;
 
   if (fp == NULL)
   {
@@ -867,169 +949,712 @@ int filtroCuenta(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep)
     while (!feof(fp))
     {
       fgets(temp,1000,fp);
-      cumple = 3;
-       if (obtenerColumnas(sep, temp) == colum)
-        { 
-          if (comprobacionFila(meta, temp, sep) == 1)
+      //cumple = 3;
+      if (obtenerColumnas(sep, temp) == colum)
+      { 
+        if (comprobacionFila(meta, temp, sep) == 1)
+        {
+          if (filaCumpleFiltro(meta, metaFiltros, temp, sep) == 1)
           {
-            for (int i = 0; i < colum; i++)
-            {
-              pFiltro = metaFiltros -> p;
-              vaciarChar(cad);
-              obtenerCadena(temp, sep, i, cad);
-              pCol = buscarColumnaNumero(meta, i);
-
-              //Cuando sea 0 es por que la fila no cumple los filtros
-              if (cumple != 0)
-              {
-                while (pFiltro)
-                {
-                  if (pFiltro->pCol == pCol)
-                  {
-                    if (pCol ->t == NUM)
-                    {
-                      cadF = atof(cad);
-                      valorFiltro = atof(pFiltro ->valor);
-                      if (pFiltro ->operador == IGUAL)
-                      {
-                        if (cadF == valorFiltro)
-                        {
-                          cumple = 1;
-                        }
-                        else
-                        {
-                          cumple = 0;
-                          break;
-                        }
-                        
-                      }
-                      else if (pFiltro ->operador == DISTINTO)
-                      {
-                        if (cadF != valorFiltro)
-                        {
-                          cumple = 1;
-                        }
-                        else
-                        {
-                          cumple = 0;
-                          break;
-                        }
-                      }
-                      else if (pFiltro ->operador == MENOR)
-                      {
-                        if (cadF < valorFiltro)
-                        {
-                          cumple = 1;
-                        }
-                        else
-                        {
-                          cumple = 0;
-                          break;
-                        }
-                      }
-                      else if (pFiltro ->operador == MENORIGUAL)
-                      {
-                        if (cadF <= valorFiltro)
-                        {
-                          cumple = 1;
-                        }
-                        else
-                        {
-                          cumple = 0;
-                          break;
-                        }
-                      }
-                      else if (pFiltro ->operador == MAYOR)
-                      {
-                        if (cadF > valorFiltro)
-                        {
-                          cumple = 1;
-                        }
-                        else
-                        {
-                          cumple = 0;
-                          break;
-                        }
-                      }
-                      else if (pFiltro ->operador == MAYORIGUAL)
-                      {
-                        if (cadF >= valorFiltro)
-                        {
-                          cumple = 1;
-                        }
-                        else
-                        {
-                          cumple = 0;
-                          break;
-                        }
-                      }
-                    }
-                    else if (pCol ->t == STR)
-                    {
-                      if (pFiltro ->operador == IGUAL)
-                      {
-                        if (strcmp(cad, pFiltro->valor) == 0)
-                        {
-                          cumple = 1;
-                        }
-                        else
-                        {
-                          cumple = 0;
-                        }
-                      }
-                      else if (pFiltro ->operador == DISTINTO)
-                      {
-                        if (strcmp(cad, pFiltro->valor) == 1)
-                        {
-                          cuenta++;
-                        }
-                      }
-                    }
-                  }
-                  pFiltro = pFiltro ->next;
-                }
-              }
-            }
-            if (cumple == 1)
-            {
-              cuenta++;
-            }
+            cuenta++;
           }
         }
+      }
     } 
   }
-  printf("Recuento total que cumplen los filtros: %d\n", cuenta);
+  if (cuenta == 0)
+  {
+    printf("No hay datos que cumplan el filtro\n");
+  }
+  else
+  {
+    printf("Recuento total que cumplen los filtros: %d\n", cuenta);
+  }
   fclose(fp);
   return 1;
 }
 
-/*
-int filtroTotal(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep)
+
+int filtroTotal(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep, char *columna)
 {
   FILTRO *pFiltro = NULL;
-  COLUMNA *pCol = NULL;
-  int colum = meta -> nCols;
+  COLUMNA *pCol = buscarCol(meta, columna);
   FILE *fp;
+  int colum = meta -> nCols;
   fp = fopen (nomfc, "r" );
   char temp[1000];
   char cad[100];
+  int numColumna = buscarColumnaNombre(meta, columna);
+  float cadTemp = 0;
+  float total = 0;
+  //int cumple = 3;
   float cadF, valorFiltro;
-}*/
 
-
-/*char trim (char *cadena)
-{
-
-}*/
-
-/*char minus (char *cadena)
-{
-  for (int indice = 0; cadena[indice] != '\0'; ++indice)
+  if (pCol == NULL)
   {
-		cadena[indice] = tolower(cadena[indice]);
+    printf("La columna no existe\n");
+    return 0;
+  }
+  else
+  {
+    if (pCol ->t != NUM)
+    {
+      printf("El tipo no es NUM\n");
+      return 0;
+    }
+    else
+    {
+      if (fp == NULL)
+      {
+        printf("Error apertura archivo\n");
+        return 0;
+      }
+      else
+      {
+        fgets(temp,1000,fp);
+
+        while (!feof(fp))
+        {
+          fgets(temp,1000,fp);
+          //cumple = 3;
+          if (obtenerColumnas(sep, temp) == colum)
+            { 
+              if (comprobacionFila(meta, temp, sep) == 1)
+              {
+                if (filaCumpleFiltro(meta, metaFiltros, temp, sep) == 1)
+                {
+                  vaciarChar(cad);
+                  obtenerCadena(temp, sep, numColumna, cad);
+                  cadTemp = atof(cad);
+                  total = total + cadTemp;
+                }
+              }
+            }
+        } 
+      }
+    }
+  }
+  if(total == 0)
+  {
+    printf("No hay datos que cumplan el filtro\n");
+  }
+  else
+  {
+  printf("Total :%f\n", total);
+  }
+  return 1;
+}
+
+int filtroPromedio(METADATOS *meta, FILTROS *metaFiltros, char *nomfc, char *sep, char *columna)
+{
+  FILTRO *pFiltro = NULL;
+  COLUMNA *pCol = buscarCol(meta, columna);
+  FILE *fp;
+  int colum = meta -> nCols;
+  fp = fopen (nomfc, "r" );
+  char temp[1000];
+  char cad[100];
+  int numColumna = buscarColumnaNombre(meta, columna);
+  float cadTemp = 0;
+  float total = 0;
+  int veces = 0;
+  float cadF, valorFiltro;
+
+  if (pCol == NULL)
+  {
+    printf("La columna no existe\n");
+    return 0;
+  }
+  else
+  {
+    if (pCol ->t != NUM)
+    {
+      printf("El tipo no es NUM\n");
+      return 0;
+    }
+    else
+    {
+      if (fp == NULL)
+      {
+        printf("Error apertura archivo\n");
+        return 0;
+      }
+      else
+      {
+        fgets(temp,1000,fp);
+
+        while (!feof(fp))
+        {
+          fgets(temp,1000,fp);
+          if (obtenerColumnas(sep, temp) == colum)
+            { 
+              if (comprobacionFila(meta, temp, sep) == 1)
+              {
+                if (filaCumpleFiltro(meta, metaFiltros, temp, sep) == 1)
+                {
+                  vaciarChar(cad);
+                  obtenerCadena(temp, sep, numColumna, cad);
+                  cadTemp = atof(cad);
+                  total = total + cadTemp;
+                  veces++;
+                }
+              }
+            }
+        } 
+      }
+    }
+  }
+  if ((total/veces) == 0)
+  {
+    printf("No hay datos que cumplan el filtro\n");
+  }
+  else
+  {
+    printf("Promedio :%f\n", (total/veces));
+  }
+  return 1;
+}
+
+int filaCumpleFiltro(METADATOS *meta, FILTROS *metaFiltros, char *temp, char *sep)
+{
+  int cumple = 3;
+  int colum = meta ->nCols;
+  FILTRO *pFiltro = NULL;
+  COLUMNA *pCol = NULL;
+  char cad[100];
+  float cadF, valorFiltro;
+  
+  for (int i = 0; i < colum; i++)
+  {
+    pFiltro = metaFiltros -> p;
+    vaciarChar(cad);
+    obtenerCadena(temp, sep, i, cad);
+    pCol = buscarColumnaNumero(meta, i);
+
+    //Cuando sea 0 es por que la fila no cumple los filtros
+    if (cumple != 0)
+    {
+      while (pFiltro)
+      {
+        if (pFiltro->pCol == pCol)
+        {
+          if (pCol ->t == NUM)
+          {
+            cadF = atof(cad);
+            valorFiltro = atof(pFiltro ->valor);
+            if (pFiltro ->operador == IGUAL)
+            {
+              if (cadF == valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+              
+            }
+            else if (pFiltro ->operador == DISTINTO)
+            {
+              if (cadF != valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MENOR)
+            {
+              if (cadF < valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MENORIGUAL)
+            {
+              if (cadF <= valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MAYOR)
+            {
+              if (cadF > valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MAYORIGUAL)
+            {
+              if (cadF >= valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+          }
+          else if (pCol ->t == STR)
+          {
+            if (pFiltro ->operador == IGUAL)
+            {
+              if (strcmp(cad, pFiltro->valor) == 0)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+              }
+            }
+            else if (pFiltro ->operador == DISTINTO)
+            {
+              if (strcmp(cad, pFiltro->valor) != 0)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+              }
+            }
+            else if (pFiltro ->operador == MENOR)
+            {
+              if (strcmp(cad, pFiltro->valor) < 0)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+              }
+            }
+            else if (pFiltro ->operador == MENORIGUAL)
+            {
+              if (strcmp(cad, pFiltro->valor) <= 0)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+              }
+            }
+            else if (pFiltro ->operador == MAYOR)
+            {
+              if (strcmp(cad, pFiltro->valor) > 0)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+              }
+            }
+            else if (pFiltro ->operador == MAYORIGUAL)
+            {
+              if (strcmp(cad, pFiltro->valor) >= 0)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+              }
+            }
+          }
+          else if (pCol ->t == DATE)
+          {
+            int anyo = atoi(strtok(cad,"/"));
+            int mes = atoi(strtok(NULL, "/"));
+            int dia = atoi(strtok(NULL, "/"));
+            cadF = (float)fechaAserie(anyo, mes, dia);
+
+            anyo = atoi(strtok(pFiltro->valor,"/"));
+            mes = atoi(strtok(NULL, "/"));
+            dia = atoi(strtok(NULL, "/"));
+            valorFiltro = (float)fechaAserie(anyo, mes, dia);
+
+            if (pFiltro ->operador == IGUAL)
+            {
+              if (cadF == valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+              
+            }
+            else if (pFiltro ->operador == DISTINTO)
+            {
+              if (cadF != valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MENOR)
+            {
+              if (cadF < valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MENORIGUAL)
+            {
+              if (cadF <= valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MAYOR)
+            {
+              if (cadF > valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+            else if (pFiltro ->operador == MAYORIGUAL)
+            {
+              if (cadF >= valorFiltro)
+              {
+                cumple = 1;
+              }
+              else
+              {
+                cumple = 0;
+                break;
+              }
+            }
+
+          }
+        }
+        pFiltro = pFiltro ->next;
+      }
+    }
+  }
+  return cumple;
+}
+
+char *devuelveOperador(FILTRO *pFiltro)
+{
+  if (pFiltro->operador == IGUAL)
+  {
+    return "==";
+  }
+  else if (pFiltro->operador == DISTINTO)
+  {
+    return "!=";
+  }
+  else if (pFiltro->operador == MENOR)
+  {
+    return "<";
+  }
+  else if (pFiltro->operador == MENORIGUAL)
+  {
+    return "<=";
+  }
+  else if (pFiltro->operador == MAYOR)
+  {
+    return ">";
+  }
+  else if (pFiltro->operador == MAYORIGUAL)
+  {
+    return ">=";
+  }
+  return " ";
+}
+
+
+char *trim(char *s)
+{
+  while(isspace(*s)) s++;
+
+  char* back = s + strlen(s);
+    while(isspace(*--back));
+    *(back+1) = '\0';
+
+  return s; 
+}
+
+int es_bisiesto(int anyo)
+{
+	if(anyo % 400 == 0)
+		return 1;
+	else if(anyo % 100 == 0)
+		return 0;
+	else if(anyo % 4 == 0)
+		return 1;
+	else
+		return 0;			
+}
+
+int validar_fecha(int anyo, int mes, int dia)
+{
+	if(anyo == 0)
+		return 0;
+
+	switch(mes){
+		case 1:
+		case 3:
+		case 5:
+		case 7:
+		case 8:
+		case 10:
+		case 12: if(dia < 1 || dia > 31)
+				 	return 0;
+				break;
+		case 4:
+		case 6:
+		case 9:
+		case 11: if(dia < 1 || dia > 30)
+				 	return 0;
+				break;
+		case 2: if(es_bisiesto(anyo))
+        {
+					if(dia < 1 || dia > 29)
+						return 0;
+				}
+				else{
+					if(dia < 1 || dia > 28)
+						return 0;
+				}
+				break;
+		default: return 0;
 	}
-  return 
-}*/
+
+	return 1;
+}
+
+int esFecha (char *cadenaFecha)
+{
+  int i;
+  
+  if (strlen(cadenaFecha) == 10)
+  {
+    
+    //Comprobamos ANYO YYYY
+    for (i = 0; i < 4; i++)
+    {
+      int codigoAscii = toascii(cadenaFecha[i]);
+
+      if(codigoAscii <= 57 && codigoAscii >= 48)
+      {
+
+      }
+      else
+      {
+        return 0;
+      }
+    }
+    
+    
+    //Comprobamos primer /
+    if (cadenaFecha[4] == '/')
+    {
+      
+    }
+    else
+    {
+      return 0;
+    }
+    
+    
+    //Comprobamos MESES MM
+    for (i = 5; i < 7; i++)
+    {
+      int codigoAscii = toascii(cadenaFecha[i]);
+
+      if(codigoAscii <= 57 && codigoAscii >= 48)
+      {
+
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+    //Comprobamos segundo /
+    if (cadenaFecha[7] == '/')
+    {
+      
+    }
+    else
+    {
+      return 0;
+    }
+
+    //Comprobamos DIAS DD
+    for (i = 8; i < 10; i++)
+    {
+      int codigoAscii = toascii(cadenaFecha[i]);
+
+      if(codigoAscii <= 57 && codigoAscii >= 48)
+      {
+
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+  }
+  else
+  {
+    return 0;
+  }
+  int anyo = atoi(strtok(cadenaFecha,"/"));
+  int mes = atoi(strtok(NULL, "/"));
+  int dia = atoi(strtok(NULL, "/"));
+  return validar_fecha(anyo, mes, dia);
+  
+}
+
+int fechaAserie(int anyo, int mes, int dia)
+{
+	int bisiestos = (anyo-1) / 4 - anyo / 100 + anyo / 400;
+	int Tdias = 365 * anyo + bisiestos;
+	int acumuladoDiasMes[11] = {31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+
+	if(es_bisiesto(++anyo)){
+		int i;
+		for(i = 1; i < 11; i++)
+			acumuladoDiasMes[i]++;
+	}
+
+	int diasAcumAnyo;
+
+	if(mes == 1)
+		diasAcumAnyo = dia;
+	else
+		diasAcumAnyo = acumuladoDiasMes[mes - 2] + dia;
+
+	return Tdias + diasAcumAnyo;
+}
+
+void serieAfecha(int serie, int *anyo, int *mes, int *dia){
+	int acumuladoDiasMes[11] = {31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+	
+	if(serie >= 146097) //146097 d�as en 400 a�os.
+		serieFecha(serie, anyo, mes, dia, 0, acumuladoDiasMes);
+	else if(serie >= 36524) //36524 d�as en 100 a�os.
+		serieFecha(serie, anyo, mes, dia, 1, acumuladoDiasMes);
+	else if(serie >= 1461) //1461 d�as en 4 a�os.
+		serieFecha(serie, anyo, mes, dia, 2, acumuladoDiasMes);
+	else if(serie >= 365) //365 d�as en 1 a�o.
+		serieFecha(serie, anyo, mes, dia, 3, acumuladoDiasMes);
+	else{
+		*anyo = 1;
+		diasRestMenorAnyo(serie, mes, dia, acumuladoDiasMes);		
+	}			
+}
+
+void diasRestMenorAnyo(int diasRest, int *mes, int *dia, int *acumuladoDiasMes)
+{
+	if(diasRest <= 31)
+  {
+		*mes = 1;
+		*dia = diasRest;
+	}
+	else
+  {
+		int i = 0;
+		while(diasRest > acumuladoDiasMes[i + 1])
+			i++;
+	
+		*mes = i + 2;
+		*dia = diasRest - acumuladoDiasMes[i];
+	}	
+}
+
+
+void serieFecha(int serie, int *anyo, int *mes, int *dia, int indice, int *acumuladoDiasMes)
+{
+	int diasRangoAnyos[4] = {146097, 36524, 1461, 365};
+	int RangoAnyos[4] = {400, 100, 4, 1};
+	int diasRest = serie, veces;
+
+	*anyo = 0;
+
+	int i;
+	for(i = indice; i < 4 && diasRest != 0; i++)
+  {
+		veces = diasRest / diasRangoAnyos[i];
+		*anyo += veces * RangoAnyos[i];
+		diasRest %= diasRangoAnyos[i];
+	}
+	
+	if(diasRest == 0 && veces == 4 && (i == 2 || i == 4))
+  {
+		*mes = 12;
+		*dia = 30;		
+	}
+	else if(diasRest == 0)
+  {
+		*mes = 12;
+		*dia = 31;
+	}
+	else
+  {
+		if(es_bisiesto(++*anyo))
+    {
+			for(i = 1; i < 11; i++)
+				acumuladoDiasMes[i]++;
+		}
+		
+		diasRestMenorAnyo(diasRest, mes, dia, acumuladoDiasMes);	
+	}	
+}
+
+
+
+
 
 void datosPersonales()
 {
