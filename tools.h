@@ -122,6 +122,7 @@ void serieFecha(int serie, int *anyo, int *mes, int *dia, int indice, int *acumu
 
 char *minus(char *cadena);
 
+int guardarMeta(METADATOS *meta, char *nombreFichero);
 
 //Funciones para datos PERSONALES
 void datosPersonales(); //Funcion para imprimir datos personales

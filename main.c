@@ -14,7 +14,8 @@ int main(int argc, char const *argv[]) {
   char nomdb[100]="*";
   char nomfc[100];
   char sep[50];
-  char vali[5]="";
+  char vali[50]="";
+  char ejer1[100];
 
   METADATOS *meta;
   //struct COLUMNAS *columnas;
@@ -79,7 +80,7 @@ int main(int argc, char const *argv[]) {
         printf("caso datos\n");
         printf("----------\n");
 
-        if ((token[1] == NULL) || (token[2] == NULL))
+        if (token[1] == NULL || token[2] == NULL || token[3] != NULL)
         {
           printf("INTRODUCE UN COMANDO VALIDO\n");
         }
@@ -88,7 +89,6 @@ int main(int argc, char const *argv[]) {
           vaciarChar(nomfc);
           strcpy(nomfc, token[1]);
           strcpy(sep, validarSep(token[2]));
-          //validarSep(token[2]);
           if (cargarFichero(nomfc) == 1)
           {
             strcpy(nomdb, nomfc);
@@ -124,7 +124,8 @@ int main(int argc, char const *argv[]) {
               metaFiltros = crearFiltrosMeta();
               validarBD(nomfc, sep, meta);
               infoValidar(meta);
-              strcpy(vali, "");
+              sprintf(ejer1, " (%d,%d)", meta->nFils, meta ->nCols);
+              strcpy(vali, ejer1);
               validado = 1;
             }
             //Segunda o posterior vez ponemos el comando
@@ -302,13 +303,8 @@ int main(int argc, char const *argv[]) {
       case GUARDAR:
         printf("caso GUARDAR\n");
         printf("------------\n");
-        char test[20] = "  \n \r hola \t\v\f";
-        char temp[20];
-        int anyo = 0;
-        int mes = 0;
-        int dia = 0;
 
-        if (token[1] == NULL || token[2] == NULL)
+        if (token[1] == NULL || token[2] == NULL || token[3] != NULL)
         {
           printf("INTRODUCE UN COMANDO VALIDO\n");
         }
@@ -316,12 +312,8 @@ int main(int argc, char const *argv[]) {
         {
           if (strcmp(token[1], "meta") == 0)
           {
-            printf("COMANDO OK \n");
-            //printf("%s\n",trim("  hola  "));
-           //printf("%d\n",fechaAserie(2019,01,20));
-           serieAfecha(737079,&anyo,&mes,&dia);
-          }
-          
+            guardarMeta(meta, token[2]);
+          } 
         }
         
       break;

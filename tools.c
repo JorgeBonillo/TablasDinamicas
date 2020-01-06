@@ -73,6 +73,7 @@ int cargarFichero(char *nombreFichero)
   fp = fopen (nombreFichero, "r" );
   if (fp==NULL)
   {
+    printf("El fichero NO existe\n");
     ok = 0;
   }
   else
@@ -840,9 +841,14 @@ int esNumero(char *cadena)
   for(int i = 0; i < strlen(cadena); i++)
   {
     int codigoAscii = toascii(cadena[i]);
+    int codigoAscii0 = toascii(cadena[0]);
     if(codigoAscii <= 57 && codigoAscii >= 48)
     {
       
+    }
+    else if (codigoAscii0 == 43 || codigoAscii0 == 45)
+    {
+      printf("%c",cadena[0]);
     }
     else
     {
@@ -1652,7 +1658,32 @@ void serieFecha(int serie, int *anyo, int *mes, int *dia, int indice, int *acumu
 	}	
 }
 
+int guardarMeta(METADATOS *meta, char *nombreFichero)
+{
+  FILE *f;
 
+  f = fopen(nombreFichero, "w");
+  if (meta == NULL)
+  {
+    printf("No hay datos en META\n");
+    return 0;
+  }
+
+  if (f==NULL)
+  {
+    printf("Error en la apertura del fichero\n");
+    return 0;
+  }
+  else
+  {
+    fprintf(f, "Columnas: %d\n", meta ->nCols);
+    fprintf(f, "Filas: %d\n", meta ->nFils);
+    fprintf(f, "Errores: %d\n", meta ->nErrs);
+  }
+  fclose(f);
+  return 1;
+
+}
 
 
 
