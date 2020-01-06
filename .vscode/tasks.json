@@ -12,8 +12,8 @@
                 "-o",
                 "test",
                 "main.c",
-                "tools.c",
-                "list.c"
+                "cadenas.c",
+                "datos.c"
             ],
             
             "group": "build"

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "tools.h"
-#include "list.h"
+#include "cadenas.h"
+#include "datos.h"
 
 
 int main(int argc, char const *argv[]) {
@@ -94,6 +94,8 @@ int main(int argc, char const *argv[]) {
             strcpy(nomdb, nomfc);
             strcpy(vali, "-?");
             validado = 0;
+            liberarMemoriaFiltros(metaFiltros);
+            liberarMemoriaMeta(meta);
           }    
           else
           {
@@ -118,8 +120,6 @@ int main(int argc, char const *argv[]) {
             //Primera vez que se pone validar
             if (validado == 0)
             {
-              liberarMemoriaFiltros(metaFiltros);
-              liberarMemoriaMeta(meta);
               meta = crearMetadatos(numColumnas(nomfc, sep), numFilas(nomfc, sep));
               metaFiltros = crearFiltrosMeta();
               validarBD(nomfc, sep, meta);

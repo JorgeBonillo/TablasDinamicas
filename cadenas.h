@@ -124,6 +124,8 @@ char *minus(char *cadena);
 
 int guardarMeta(METADATOS *meta, char *nombreFichero);
 
+char *devuelveTipo(COLUMNA *pCol);
+
 //Funciones para datos PERSONALES
 void datosPersonales(); //Funcion para imprimir datos personales
 

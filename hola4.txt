@@ -1,2 +1,0 @@
-Columnas: 9
-Filas: 15

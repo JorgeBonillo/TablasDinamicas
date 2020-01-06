@@ -1,5 +1,5 @@
-#include "tools.h"
-#include "list.h"
+#include "cadenas.h"
+#include "datos.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -906,13 +906,16 @@ void infoValidar(METADATOS *meta)
 {
   COLUMNA* pCol = meta -> p;
   int contador = 1;
+  char tipo[10];
+
   printf("Numero de filas incorrectas: %d\n", meta -> nErrs);
   printf("Numero de filas correctas: %d\n", meta -> nFils);
   printf("Numero de columnas: %d\n", meta -> nCols);
 
   while (pCol)
   {
-    printf("Columna %d: %s\n", contador, pCol -> nom);
+    strcpy(tipo, devuelveTipo(pCol));
+    printf("Columna %d: %s -- Tipo: %s\n", contador, pCol -> nom, tipo);
     pCol = pCol -> next;
     contador++;
   }
@@ -1411,6 +1414,27 @@ char *devuelveOperador(FILTRO *pFiltro)
   else if (pFiltro->operador == MAYORIGUAL)
   {
     return ">=";
+  }
+  return " ";
+}
+
+char *devuelveTipo(COLUMNA *pCol)
+{
+  if (pCol->t == VOID)
+  {
+    return "VOID";
+  }
+  else if (pCol->t == NUM)
+  {
+    return "NUM";
+  }
+  else if (pCol->t == DATE)
+  {
+    return "DATE";
+  }
+  else if (pCol->t == STR)
+  {
+    return "STR";
   }
   return " ";
 }

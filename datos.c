@@ -1,4 +1,4 @@
-#include "list.h"
+#include "datos.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -195,6 +195,9 @@ int liberarMemoriaMeta (METADATOS *metaColumnas)
         free (pColAux);
     }
 
+    metaColumnas -> nCols = 0;
+    metaColumnas -> nErrs = 0;
+    metaColumnas -> nFils = 0;
     
     
     free(metaColumnas);

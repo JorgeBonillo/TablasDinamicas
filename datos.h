@@ -1,4 +1,4 @@
-#include "tools.h"
+#include "cadenas.h"
 
 METADATOS *crearMetadatos (int colum, int fila);
 
