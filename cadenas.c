@@ -206,6 +206,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
   char aux = '0';
   COLUMNA* pCol, pColAux;
   ETIQUETA* pEtiq;
+  int i;
 
   f = fopen(nomfc, "r");
   if (f == NULL)
@@ -224,7 +225,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
     vaciarChar(cad);
     
     //Poner nombres a las cadenas
-    for (int i = 0; i < colum; i++)
+    for (i = 0; i < colum; i++)
       {
         obtenerCadena(temp, sep, i, cad);
 
@@ -255,7 +256,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
       //Comprobar que la 1 y 2 fila tienen las mismas columnas
       if (obtenerColumnas(sep, temp2) == colum)
       { 
-        for (int i = 0; i < colum; i++)
+        for (i = 0; i < colum; i++)
         {
           obtenerCadena(temp2, sep, i, cad);
 
@@ -337,7 +338,7 @@ int validarBD(char *nomfc, char *sep, METADATOS *meta)
         if (comprobacionFila(meta, temp2, sep) == 1)
         {
           //printf("Fila: %d correcta \n", linea);
-          for (int i = 0; i < colum; i++)
+          for (i = 0; i < colum; i++)
           {
             obtenerCadena(temp2, sep, i, cad);
             if (pCol -> t == STR)
@@ -470,7 +471,8 @@ char *eliminarMenorMayor(char *cadena)
 {
   char *cadenaTemporal = malloc(strlen(cadena)+1);
   int j=0;
-  for (int i = 1; i<strlen(cadena)-1; i++)
+  int i;
+  for (i = 1; i<strlen(cadena)-1; i++)
   {
     cadenaTemporal[j]=cadena[i];
     j++;
@@ -516,6 +518,7 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
     float valor;
     int primeraVez = 0;
     int veces = 1;
+    int i;
 
     if (fp == NULL)
     {
@@ -603,6 +606,7 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
               }
               else if (pCol -> t == STR)
               {
+                ordenacionSTR(pCol);
                 ETIQUETA *pEtiq = pCol ->lista;
                 while (pEtiq)
                 {
@@ -610,7 +614,8 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
                   printf("Repeticiones: %d\n", pEtiq -> cuenta);
                   printf("----------\n");
                   pEtiq = pEtiq -> siguiente;
-                }               
+                }
+                return 1;               
               }            
             }
             obtenerCadena(temp, sep, buscarColumnaNombre(meta, nomColum), cad);   
@@ -622,7 +627,7 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
       {
         rewind(fp);
         fgets(temp,1000,fp);
-        for (int i = 0; i<5; i++)
+        for (i = 0; i<5; i++)
         {
           pCol ->histograma[i] = 0;
         }
@@ -668,7 +673,7 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
       {
         rewind(fp);
         fgets(temp,1000,fp);
-        for (int i = 0; i<5; i++)
+        for (i = 0; i<5; i++)
         {
           pCol ->histograma[i] = 0;
         }
@@ -719,7 +724,7 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
         printf("Max: %f\n", pCol ->max);
         printf("Prom: %f\n", pCol ->prom);
         printf("HISTOGRAMA\n");
-        for (int i = 0; i<5; i++)
+        for (i = 0; i<5; i++)
         {
           printf("%d\n", pCol ->histograma[i]);
         }
@@ -742,7 +747,7 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
         printf("Prom: %d/%d/%d\n", anyo, mes, dia);
 
         printf("HISTOGRAMA\n");
-        for (int i = 0; i<5; i++)
+        for (i = 0; i<5; i++)
         {
           printf("%d\n", pCol ->histograma[i]);
         }
@@ -838,7 +843,9 @@ void imprimirFiltros(FILTROS *metaFiltros)
 
 int esNumero(char *cadena)
 {
-  for(int i = 0; i < strlen(cadena); i++)
+  int i;
+  int decimal = 0;
+  for(i = 0; i < strlen(cadena); i++)
   {
     int codigoAscii = toascii(cadena[i]);
     int codigoAscii0 = toascii(cadena[0]);
@@ -850,15 +857,39 @@ int esNumero(char *cadena)
     {
       printf("%c",cadena[0]);
     }
+    else if (codigoAscii == 46)
+    {
+      if (decimal == 0)
+      {
+        decimal = 1;
+      }
+      else
+      {
+        return 0;
+      }
+    } 
     else
     {
       return 0;
     }
+
   }
   return 1;
 }
 
-int esCadena (char *cadena)
+int esVoid(char *cadena)
+{
+  if (strcmp(cadena, "") == 0)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+/*int esCadena (char *cadena)
 {
   for(int i = 0; i < strlen(cadena); i++)
   {
@@ -877,15 +908,16 @@ int esCadena (char *cadena)
     }
   }
   return 1;
-}
+}*/
 
 int comprobacionFila(METADATOS *meta, char *fila, char *separador)
 {
   COLUMNA *pCol = meta -> p;
   char cadena[100];
   int columnas = meta ->nCols;
+  int i;
   
-  for (int i = 0; i < columnas; i++)
+  for (i = 0; i < columnas; i++)
   {
     vaciarChar(cadena);
     obtenerCadena(fila, separador, i, cadena);
@@ -1132,8 +1164,9 @@ int filaCumpleFiltro(METADATOS *meta, FILTROS *metaFiltros, char *temp, char *se
   COLUMNA *pCol = NULL;
   char cad[100];
   float cadF, valorFiltro;
+  int i;
   
-  for (int i = 0; i < colum; i++)
+  for (i = 0; i < colum; i++)
   {
     pFiltro = metaFiltros -> p;
     vaciarChar(cad);

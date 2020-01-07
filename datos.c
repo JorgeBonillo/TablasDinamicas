@@ -261,7 +261,11 @@ OPERANDO comprobarOperando (char *operan)
 
 TIPO comprobarTipo (char *cadena)
 {
-    if (esNumero(cadena) == 1)
+    if (esVoid(cadena) == 1)
+    {
+        return VOID;
+    }
+    else if (esNumero(cadena) == 1)
     {
         return NUM;
     }
@@ -269,25 +273,69 @@ TIPO comprobarTipo (char *cadena)
     {
         return DATE;
     }
-    else if (esCadena(cadena) == 1)
+    else 
     {
         return STR;
-    }
-    else
-    {
-        return VOID;
     }  
 }
+
 
 //Nos devuelve un puntero a la columna con numero numeroCol
 COLUMNA *buscarColumnaNumero (METADATOS *meta, int numeroCol)
 {
     COLUMNA *pCol = meta -> p;
+    int i;
 
-    for (int i = 0; i < numeroCol; i++)
+    for (i = 0; i < numeroCol; i++)
     {  
         pCol = pCol ->next;
     }
     
     return pCol;
+}
+
+int ordenacionSTR(COLUMNA *pCol)
+{
+    ETIQUETA *temp;
+    ETIQUETA *pEtiq = pCol ->lista;
+    ETIQUETA *pEtiqSig = pEtiq ->siguiente;
+    ETIQUETA *anterior;
+    while (ordenado(pCol) == 0)
+    { 
+        pEtiq = pCol ->lista;
+        pEtiqSig = pEtiq ->siguiente;
+        while (pEtiqSig)
+        {
+            
+            if (strcmp((pEtiq->etiqueta), (pEtiqSig -> etiqueta)) > 0)
+            {
+                temp = pEtiq;
+                anterior -> siguiente = pEtiqSig;
+                pEtiq -> siguiente = pEtiqSig->siguiente;
+                pEtiqSig -> siguiente = temp;
+                break;
+            }
+            anterior = pEtiq;
+            pEtiqSig = pEtiqSig -> siguiente;
+            pEtiq = pEtiq -> siguiente;
+        }
+    }
+    return 1; 
+}
+
+int ordenado(COLUMNA *pCol)
+{
+    ETIQUETA *pEtiq = pCol ->lista;
+    ETIQUETA *pEtiqSig = pEtiq ->siguiente;
+    while (pEtiqSig)
+    {      
+        if (strcmp((pEtiq->etiqueta), (pEtiqSig -> etiqueta)) > 0)
+        {
+            return 0;
+        }
+        pEtiqSig = pEtiqSig -> siguiente;
+        pEtiq = pEtiq->siguiente;
+        
+    }
+    return 1;
 }

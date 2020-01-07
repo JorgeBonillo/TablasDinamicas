@@ -23,3 +23,7 @@ TIPO comprobarTipo (char *cadena);
 int buscarColumnaNombre (METADATOS *meta, char *nombreColumna);
 
 COLUMNA *buscarColumnaNumero (METADATOS *meta, int numeroCol);
+
+int ordenado(COLUMNA *pCol);
+
+int ordenacionSTR(COLUMNA *pCol);
