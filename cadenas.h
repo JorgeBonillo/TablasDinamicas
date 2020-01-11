@@ -43,7 +43,7 @@ typedef struct
 //ESTRUCTURAS PARA FILTROS
 
 typedef enum {
-  IGUAL, DISTINTO, MENOR, MENORIGUAL, MAYOR, MAYORIGUAL, nulo
+  IGUAL, DISTINTO, MENOR, MENORIGUAL, MAYOR, MAYORIGUAL, nulo, entre
 } OPERANDO;
 
 typedef struct filtro
@@ -51,6 +51,7 @@ typedef struct filtro
   COLUMNA *pCol;
   OPERANDO operador;
   char *valor;
+  char *valor2;
   struct filtro *next;
 } FILTRO;
 
@@ -127,6 +128,8 @@ int guardarMeta(METADATOS *meta, char *nombreFichero);
 char *devuelveTipo(COLUMNA *pCol);
 
 int esVoid(char *cadena);
+
+int anadirFiltroEntre(FILTROS *metaFiltros, METADATOS *meta, char *columna, char *valor1, char *valor2);
 
 //Funciones para datos PERSONALES
 void datosPersonales(); //Funcion para imprimir datos personales

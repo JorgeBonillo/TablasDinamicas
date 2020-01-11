@@ -55,12 +55,12 @@ int main(int argc, char const *argv[]) {
           token[0] = strtok(comando, " ");
           do
           {
-            printf( "\nTOKENIZACION\n");
-            printf( "%s\n", token[nTok]);
+            //printf( "\nTOKENIZACION\n");
+            //printf( "%s\n", token[nTok]);
             nTok++;
             token[nTok] = strtok(NULL, " ");
           }while(token[nTok] != NULL );
-          printf( "--------------\n\n");
+          //printf( "--------------\n\n");
         }
 
     }while(strcmp(comando, "") ==0);
@@ -77,8 +77,8 @@ int main(int argc, char const *argv[]) {
       break;
 
       case DATOS:
-        printf("caso datos\n");
-        printf("----------\n");
+        //printf("caso datos\n");
+        //printf("----------\n");
 
         if (token[1] == NULL || token[2] == NULL || token[3] != NULL)
         {
@@ -106,8 +106,8 @@ int main(int argc, char const *argv[]) {
       break;
 
       case VALIDAR:
-        printf("caso validar\n");
-        printf("------------\n");
+        //printf("caso validar\n");
+        //printf("------------\n");
 
         if (strcmp(nomdb, "*")==0)
         {
@@ -144,8 +144,8 @@ int main(int argc, char const *argv[]) {
       break;
 
       case RENOMBRAR:
-        printf("caso RENOMBRAR\n");
-        printf("------------\n");
+        //printf("caso RENOMBRAR\n");
+        //printf("------------\n");
 
         if (validado == 1)
         {
@@ -187,29 +187,45 @@ int main(int argc, char const *argv[]) {
       break;
 
       case FILTROPROM:
-        printf("caso FILTRO\n");
-        printf("------------\n");
+        //printf("caso FILTRO\n");
+        //printf("------------\n");
 
         if (validado == 1)
         {
-          if ((token[1] == NULL) || (token[2] == NULL) || (token[3] == NULL) || (token[4] != NULL))
+          if ((token[1] == NULL) || (token[2] == NULL) || (token[3] == NULL) || (token[4] == NULL) || token [5] != NULL)
           {
             printf("INTRODUCE UN COMANDO VALIDO\n");
           }
           else
-          {           
-            anadirFiltro(metaFiltros, meta, token[1], token[2], token[3]);           
+          {             
+            if (strcmp(token[2], "entre") == 0)
+            {
+              anadirFiltroEntre(metaFiltros, meta, token[1], token[3], token[4]);
+            } 
+            else if(token[4] == NULL)
+            {
+              anadirFiltro(metaFiltros, meta, token[1], token[2], token[3]);
+            }
+            else
+            {
+              printf("INTRODUCE UN COMANDO VALIDO\n");
+            }        
           }
         }
+        else
+        {
+          printf("EL FICHERO NO ESTA VALIDADO\n");
+        }
+        
       break;
 
       case FILTROSPROM:
-        printf("caso FILTROs\n");
-        printf("------------\n");
+        //printf("caso FILTROs\n");
+        //printf("------------\n");
 
         if (validado == 1)
         {
-          if (token[1] == NULL)
+          if (token[1] == NULL || token[2] != NULL)
           {
             imprimirFiltros(metaFiltros);
           }
@@ -225,8 +241,8 @@ int main(int argc, char const *argv[]) {
       break;
 
       case BORRAR:
-        printf("caso BORRAR\n");
-        printf("------------\n");
+        //printf("caso BORRAR\n");
+        //printf("------------\n");
 
         if (validado == 1)
         {
@@ -246,8 +262,8 @@ int main(int argc, char const *argv[]) {
       break;
 
       case APLICAR:
-        printf("caso APLICAR\n");
-        printf("------------\n");
+        //printf("caso APLICAR\n");
+        //printf("------------\n");
 
         if (validado == 1)
         {
@@ -301,8 +317,8 @@ int main(int argc, char const *argv[]) {
       break;
 
       case GUARDAR:
-        printf("caso GUARDAR\n");
-        printf("------------\n");
+        //printf("caso GUARDAR\n");
+        //printf("------------\n");
 
         if (token[1] == NULL || token[2] == NULL || token[3] != NULL)
         {

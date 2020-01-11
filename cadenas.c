@@ -519,6 +519,7 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
     int primeraVez = 0;
     int veces = 1;
     int i;
+    int nColumna;
 
     if (fp == NULL)
     {
@@ -548,7 +549,8 @@ int infoColum(char* nomFichero, char* sep, METADATOS *meta, char *nomColum)
             {
               if (pCol -> t == NUM)
               {
-                obtenerCadena(temp, sep, buscarColumnaNombre(meta, nomColum), cad);
+                nColumna = buscarColumnaNombre(meta, nomColum);
+                obtenerCadena(temp, sep, nColumna, cad);
                 valor = atof(trim(cad));
                 if (primeraVez == 0)
                 {
@@ -771,50 +773,40 @@ int anadirFiltro (FILTROS *metaFiltros, METADATOS *meta, char *columna, char *op
     printf("El operando no es valido\n");
     return 0;
   }
+
+  if (pColFiltro == NULL)
+  {
+    printf("No existe la columna del filtro\n");
+    return 0;
+  }
+
   strcpy(comprobacionFiltro, valorFiltro);
   if (pColFiltro ->t != comprobarTipo(comprobacionFiltro))
   {
     return 0;
   }
-  /*
-  strcpy(comprobacionFiltro, valorFiltro);
-  if (pColFiltro -> t == DATE)
+
+  if (pFiltro == NULL)
   {
-    if (comprobarTipo(comprobacionFiltro) != DATE)
-    {
-      return 0;
-    }
-  }*/
-  if (pColFiltro == NULL)
-  {
-    printf("No existe la columna del filtro\n");
+    metaFiltros -> num = (metaFiltros -> num + 1);
+    pFiltro = metaFiltros -> p = (FILTRO*)malloc(sizeof(FILTRO));
+    pFiltro -> next = NULL;
   }
   else
   {
-    if (pFiltro == NULL)
+    while (pFiltro -> next)
     {
-      metaFiltros -> num = (metaFiltros -> num + 1);
-      pFiltro = metaFiltros -> p = (FILTRO*)malloc(sizeof(FILTRO));
-      pFiltro -> next = NULL;
+      pFiltro = pFiltro -> next;
     }
-    else
-    {
-      while (pFiltro -> next)
-      {
-        pFiltro = pFiltro -> next;
-      }
-      metaFiltros -> num = (metaFiltros -> num + 1);
-      pFiltro = pFiltro -> next = (FILTRO*)malloc(sizeof(FILTRO));
-      pFiltro -> next = NULL;
-    }
-
-    pFiltro -> pCol = pColFiltro;
-    pFiltro -> operador = comprobarOperando(operadorFiltro);
-    pFiltro -> valor = strdup(valorFiltro);
-    
+    metaFiltros -> num = (metaFiltros -> num + 1);
+    pFiltro = pFiltro -> next = (FILTRO*)malloc(sizeof(FILTRO));
+    pFiltro -> next = NULL;
   }
-  
 
+  pFiltro -> pCol = pColFiltro;
+  pFiltro -> operador = comprobarOperando(operadorFiltro);
+  pFiltro -> valor = strdup(valorFiltro);
+    
   return 0;
 }
 
@@ -1738,6 +1730,107 @@ int guardarMeta(METADATOS *meta, char *nombreFichero)
     fprintf(f, "Errores: %d\n", meta ->nErrs);
   }
   fclose(f);
+  return 1;
+
+}
+
+int anadirFiltroEntre(FILTROS *metaFiltros, METADATOS *meta, char *columna, char *valor1, char *valor2)
+{
+  FILTRO *pFiltro = metaFiltros ->p;
+  COLUMNA *pColFiltro = buscarCol(meta, columna);
+  char comprobacionVal1[200];
+  char comprobacionVal2[200];
+
+  if (pColFiltro == NULL)
+  {
+    printf("No existe la columna del filtro\n");
+    return 0;
+  }
+
+  strcpy(comprobacionVal1, valor1);
+  if (pColFiltro ->t != comprobarTipo(comprobacionVal1))
+  {
+    return 0;
+  }
+  strcpy(comprobacionVal2, valor2);
+  if (pColFiltro ->t != comprobarTipo(comprobacionVal2))
+  {
+    return 0;
+  }
+
+  if (pColFiltro ->t == NUM)
+  {
+    float floatValor1 = atof(valor1);
+    float floatValor2 = atof(valor2);
+    //float max = pColFiltro ->max;
+    //float min = pColFiltro ->min;
+
+    if (floatValor1 > floatValor2)
+    {
+      printf("El segundo valor es mayor que el primero\n");
+      return 0;
+    }
+    /*if (floatValor2 > max)
+    {
+      printf("El segundo valor es mayor que max meta\n");
+      return 0;
+    }
+    if (floatValor1 < min)
+    {
+      printf("El segundo valor es mayor que min meta\n");
+      return 0;
+    }*/
+    
+    
+  }
+  if (pColFiltro->t == DATE)
+  {
+    int anyo = atoi(strtok(valor1,"/"));
+    int mes = atoi(strtok(NULL, "/"));
+    int dia = atoi(strtok(NULL, "/"));
+    
+    int serieValor1 = fechaAserie(anyo, mes, dia);
+
+    anyo = atoi(strtok(valor2,"/"));
+    mes = atoi(strtok(NULL, "/"));
+    dia = atoi(strtok(NULL, "/"));
+    
+    int serieValor2 = fechaAserie(anyo, mes, dia);
+
+    if (serieValor1 > serieValor2)
+    {
+      printf("El segundo valor es mayor que el primero\n");
+      return 0;
+    }
+  }
+  if (pColFiltro->t == VOID)
+  {
+    printf("No se puede añadir, columna tipo VOID\n");
+    return 0;
+  }
+
+  if (pFiltro == NULL)
+  {
+    metaFiltros -> num = (metaFiltros -> num + 1);
+    pFiltro = metaFiltros -> p = (FILTRO*)malloc(sizeof(FILTRO));
+    pFiltro -> next = NULL;
+  }
+  else
+  {
+      while (pFiltro -> next)
+      {
+        pFiltro = pFiltro -> next;
+      }
+      metaFiltros -> num = (metaFiltros -> num + 1);
+      pFiltro = pFiltro -> next = (FILTRO*)malloc(sizeof(FILTRO));
+      pFiltro -> next = NULL;
+  }
+
+    pFiltro -> pCol = pColFiltro;
+    pFiltro -> operador = entre;
+    pFiltro -> valor = strdup(valor1);
+    pFiltro -> valor2 = strdup(valor2);
+  
   return 1;
 
 }
