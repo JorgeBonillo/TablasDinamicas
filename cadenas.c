@@ -1839,7 +1839,5 @@ int anadirFiltroEntre(FILTROS *metaFiltros, METADATOS *meta, char *columna, char
 
 void datosPersonales()
 {
-    printf("\nNOMBRE:\tJORGE SANCHEZ BONILLO\n");
-    printf("DNI:\t48725112-A\n");
     printf("EMAIL:\tjorge.sanchez17@goumh.umh.es\n");
 }
